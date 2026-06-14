@@ -1,65 +1,162 @@
-import Image from "next/image";
+import Link from "next/link";
+import { getAllMatches, getTournamentStats } from "@/lib/data";
+import {
+  Container,
+  Card,
+  SectionTitle,
+  Pill,
+  StaleBanner,
+  EmptyState,
+} from "@/components/ui";
+import { MatchCard } from "@/components/MatchCard";
+import { StatLeaderboard, scorerEntries } from "@/components/StatLeaderboard";
+import { LiveTodayMatches } from "@/components/live/LiveTodayMatches";
+import { SITE } from "@/lib/i18n";
+import type { Match } from "@/lib/domain/types";
 
-export default function Home() {
+const byDateAsc = (a: Match, b: Match) => +new Date(a.date) - +new Date(b.date);
+const byDateDesc = (a: Match, b: Match) => +new Date(b.date) - +new Date(a.date);
+
+export default async function HomePage() {
+  const [matchesRes, statsRes] = await Promise.all([
+    getAllMatches(),
+    getTournamentStats(),
+  ]);
+  const all = matchesRes.data;
+  const live = all.filter((m) => m.status === "in");
+  const recent = all
+    .filter((m) => m.status === "post")
+    .sort(byDateDesc)
+    .slice(0, 6);
+  const upcoming = all
+    .filter((m) => m.status === "pre")
+    .sort(byDateAsc)
+    .slice(0, 6);
+  const playedCount = all.filter((m) => m.status === "post").length;
+
+  const turk = all
+    .filter((m) => m.home.abbr === "TUR" || m.away.abbr === "TUR")
+    .sort(byDateAsc);
+  const turkLast = [...turk].reverse().find((m) => m.status === "post");
+  const turkNext = turk.find((m) => m.status === "pre");
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <>
+      <StaleBanner stale={matchesRes.stale} />
+
+      <section className="border-b border-white/10 bg-gradient-to-b from-emerald-950/40 to-transparent">
+        <Container className="py-10 sm:py-14">
+          <div className="flex flex-wrap items-center gap-2">
+            <Pill tone="emerald">Grup Aşaması</Pill>
+            <Pill tone="slate">{SITE.hosts}</Pill>
+            {live.length > 0 && <Pill tone="red">{live.length} maç canlı</Pill>}
+          </div>
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+            {SITE.longTitle}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-2 max-w-2xl text-slate-400">
+            {SITE.subtitle}. 48 takım, 12 grup, 104 maç. Canlı skorlar, fikstür,
+            grup tabloları, eleme ağacı ve istatistikleri tek yerde takip edin.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+          <div className="mt-5 flex flex-wrap gap-3 text-sm">
+            <Stat label="Oynanan maç" value={`${playedCount} / 104`} />
+            <Stat label="Toplam gol" value={String(statsRes.data.totalGoals)} />
+            <Stat
+              label="Maç başı gol"
+              value={statsRes.data.avgGoalsPerMatch.toFixed(2)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+        </Container>
+      </section>
+
+      <Container className="space-y-12 py-10">
+        <section>
+          <SectionTitle
+            title={live.length ? "Canlı ve Bugün" : "Bugünün Maçları"}
+            subtitle="Maç günü skor takibi"
+            href="/fikstur"
+          />
+          <LiveTodayMatches initial={all} />
+        </section>
+
+        <div className="grid gap-12 lg:grid-cols-2">
+          <section>
+            <SectionTitle title="Son Sonuçlar" href="/fikstur" />
+            <div className="grid gap-2">
+              {recent.length ? (
+                recent.map((m) => <MatchCard key={m.id} match={m} />)
+              ) : (
+                <EmptyState title="Henüz oynanmış maç yok." />
+              )}
+            </div>
+          </section>
+          <section>
+            <SectionTitle title="Yaklaşan Maçlar" href="/fikstur" />
+            <div className="grid gap-2">
+              {upcoming.length ? (
+                upcoming.map((m) => <MatchCard key={m.id} match={m} />)
+              ) : (
+                <EmptyState title="Yaklaşan maç bulunamadı." />
+              )}
+            </div>
+          </section>
         </div>
-      </main>
+
+        <div className="grid gap-12 lg:grid-cols-2">
+          <section>
+            <SectionTitle title="Gol Krallığı" href="/istatistikler" />
+            <Card className="p-3">
+              <StatLeaderboard
+                entries={scorerEntries(statsRes.data.topScorers.slice(0, 6))}
+                kind="player"
+                emptyText="Henüz gol kaydı yok."
+              />
+            </Card>
+          </section>
+
+          <section>
+            <SectionTitle title="Türkiye" href="/turkiye" hrefLabel="Takip et" />
+            <Card className="space-y-3 p-4">
+              <p className="text-sm text-slate-400">
+                Ay-yıldızlıların Dünya Kupası yolculuğunu yakından takip edin.
+              </p>
+              {turkLast && (
+                <div>
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Son maç
+                  </p>
+                  <MatchCard match={turkLast} />
+                </div>
+              )}
+              {turkNext && (
+                <div>
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Sonraki maç
+                  </p>
+                  <MatchCard match={turkNext} />
+                </div>
+              )}
+              {!turkLast && !turkNext && (
+                <Link
+                  href="/turkiye"
+                  className="text-sm font-medium text-emerald-400 hover:text-emerald-300"
+                >
+                  Türkiye sayfasına git →
+                </Link>
+              )}
+            </Card>
+          </section>
+        </div>
+      </Container>
+    </>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2">
+      <div className="text-lg font-bold text-white">{value}</div>
+      <div className="text-xs text-slate-400">{label}</div>
     </div>
   );
 }

@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# proje: yerel araç/derleme çıktıları
+/_preview/
+dev-server.log
+.claude/
+# snapshot fallback'leri: yalnızca toplu (aggregate) olanlar -f ile commit'lenir
+/data/snapshots/
