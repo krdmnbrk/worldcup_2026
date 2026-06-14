@@ -11,7 +11,9 @@ export function Footer() {
           <p>
             Veri ve görseller:{" "}
             <span className="text-slate-400">ESPN</span> açık API'si · bayrak
-            yedeği <span className="text-slate-400">flagcdn.com</span>. Takım
+            yedeği <span className="text-slate-400">flagcdn.com</span> · bazı
+            oyuncu fotoğrafları{" "}
+            <span className="text-slate-400">Wikimedia Commons</span> (CC). Takım
             armaları ilgili federasyonların markasıdır, yalnızca tanıtım amaçlı
             kullanılır.
           </p>

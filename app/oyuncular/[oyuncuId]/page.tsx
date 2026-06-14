@@ -60,7 +60,7 @@ export default async function PlayerPage({
     ["Uyruk", player.nationality ? trCountry(player.nationality) : undefined],
     ["Kulüp", player.club],
     ["Yaş", player.age ? `${player.age}` : undefined],
-    ["Doğum", player.dob],
+    ["Doğum", player.dob ? formatDate(player.dob) : undefined],
     ["Boy", player.height],
     ["Kilo", player.weight],
   ];
@@ -152,7 +152,7 @@ export default async function PlayerPage({
 
         {/* Maç maç katkılar */}
         <section>
-          <SectionTitle title="Maç Maç" />
+          <SectionTitle title="Maç Performansı" />
           {appearances.length ? (
             <div className="space-y-2">
               {appearances.map(({ match, events }) => (

@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   assetPrefix: isProd ? `/${repo}/` : "",
   images: { unoptimized: true },
   trailingSlash: true,
+  // public/ altındaki statik dosyalara (ör. /players/*.jpg) istemci tarafında
+  // basePath ile erişebilmek için (next/image dışı <img> otomatik prefix almaz).
+  env: { NEXT_PUBLIC_BASE_PATH: isProd ? `/${repo}` : "" },
 };
 
 export default nextConfig;

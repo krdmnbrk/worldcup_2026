@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { PLAYER_PHOTOS } from "@/data/player-photos";
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -21,7 +24,11 @@ export function PlayerImage({
   size?: number;
   className?: string;
 }) {
-  const candidates = [src].filter(Boolean) as string[];
+  // Öncelik sırası: elle eklenen statik foto (ör. Türkiye kadrosu, Wikimedia) →
+  // ESPN headshot href → baş-harf avatarı.
+  const local =
+    id && PLAYER_PHOTOS[id] ? `${BASE}/players/${PLAYER_PHOTOS[id]}` : undefined;
+  const candidates = [local, src].filter(Boolean) as string[];
   const [idx, setIdx] = useState(0);
   const url = candidates[idx];
   const box = { width: size, height: size, minWidth: size } as const;
