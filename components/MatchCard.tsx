@@ -24,9 +24,9 @@ function Side({
         align === "right" ? "flex-row-reverse text-right" : ""
       }`}
     >
-      <TeamFlag abbr={abbr} logo={logo} name={name} size={30} />
+      <TeamFlag abbr={abbr} logo={logo} name={name} size={30} className="shrink-0" />
       <span
-        className={`truncate text-sm font-semibold ${
+        className={`min-w-0 truncate text-sm font-semibold ${
           dim ? "text-slate-400" : "text-white"
         }`}
       >

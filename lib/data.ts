@@ -336,7 +336,12 @@ export function getTournamentStats(): Promise<DataResult<TournamentStats>> {
   return withSnapshot(
     "stats",
     async () => {
-      const matches = await fetchAllMatches();
+      const [matches, playerIndex] = await Promise.all([
+        fetchAllMatches(),
+        fetchPlayerIndex().catch(() => [] as Player[]),
+      ]);
+      const indexMap = new Map<string, Player>();
+      for (const p of playerIndex) if (p.id) indexMap.set(p.id, p);
       const teams = teamLookup(matches);
       const played = matches.filter(
         (m) => m.status === "post" || m.status === "in",
@@ -359,9 +364,7 @@ export function getTournamentStats(): Promise<DataResult<TournamentStats>> {
               teamId: e.teamId,
               teamAbbr: t?.abbr,
               teamName: t?.name,
-              headshot: e.playerId
-                ? `https://a.espncdn.com/i/headshots/soccer/players/full/${e.playerId}.png`
-                : undefined,
+              headshot: e.playerId ? indexMap.get(e.playerId)?.headshot : undefined,
               value: 0,
             };
             cur.value += 1;
@@ -377,6 +380,7 @@ export function getTournamentStats(): Promise<DataResult<TournamentStats>> {
               teamId: e.teamId,
               teamAbbr: t?.abbr,
               teamName: t?.name,
+              headshot: e.playerId ? indexMap.get(e.playerId)?.headshot : undefined,
               value: 0,
             };
             cur.value += 1;
@@ -633,6 +637,8 @@ export function getTurkiye(): Promise<DataResult<TurkiyePage | null>> {
     );
 
     // Türkiye golcüleri (maç olaylarından)
+    const squadById = new Map<string, Player>();
+    for (const p of squad) if (p.id) squadById.set(p.id, p);
     const scorer = new Map<string, StatLeader>();
     for (const m of matches) {
       for (const e of m.events) {
@@ -647,9 +653,7 @@ export function getTurkiye(): Promise<DataResult<TurkiyePage | null>> {
             name: e.player,
             teamId: id,
             value: 0,
-            headshot: e.playerId
-              ? `https://a.espncdn.com/i/headshots/soccer/players/full/${e.playerId}.png`
-              : undefined,
+            headshot: e.playerId ? squadById.get(e.playerId)?.headshot : undefined,
           };
           cur.value += 1;
           scorer.set(key, cur);

@@ -35,7 +35,7 @@ export default async function ElemePage() {
           <h2 className="mb-3 text-lg font-bold text-white">
             Tur Atlama Durumu
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {qualification.groups.map((g) => (
               <Card key={g.groupId} className="p-3">
                 <div className="mb-2 flex items-center justify-between">

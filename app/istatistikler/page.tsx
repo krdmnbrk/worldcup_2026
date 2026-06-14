@@ -46,7 +46,7 @@ export default async function StatsPage() {
           <Metric label="Kırmızı kart" value={`${data.redCards}`} />
         </div>
 
-        <div className="grid gap-10 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <section>
             <SectionTitle title="Gol Krallığı" subtitle="En çok gol atan oyuncular" />
             <Card className="p-3">

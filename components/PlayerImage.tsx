@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { playerHeadshotUrl } from "@/lib/espn/endpoints";
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -22,9 +21,7 @@ export function PlayerImage({
   size?: number;
   className?: string;
 }) {
-  const candidates = [src, id ? playerHeadshotUrl(id) : undefined].filter(
-    Boolean,
-  ) as string[];
+  const candidates = [src].filter(Boolean) as string[];
   const [idx, setIdx] = useState(0);
   const url = candidates[idx];
   const box = { width: size, height: size, minWidth: size } as const;

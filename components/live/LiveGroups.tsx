@@ -11,7 +11,7 @@ export function LiveGroups({ initial }: { initial: GroupStanding[] }) {
   const { data } = useEspnPoll(browserStandings, 60000, initial);
   if (!data.length) return <EmptyState title="Grup tablosu verisi alınamadı." />;
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {data.map((g) => (
         <GroupTable key={g.groupId} group={g} />
       ))}

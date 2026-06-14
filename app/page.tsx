@@ -79,10 +79,10 @@ export default async function HomePage() {
           <LiveTodayMatches initial={all} />
         </section>
 
-        <div className="grid gap-12 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           <section>
             <SectionTitle title="Son Sonuçlar" href="/fikstur" />
-            <div className="grid gap-2">
+            <div className="grid grid-cols-1 gap-2">
               {recent.length ? (
                 recent.map((m) => <MatchCard key={m.id} match={m} />)
               ) : (
@@ -92,7 +92,7 @@ export default async function HomePage() {
           </section>
           <section>
             <SectionTitle title="Yaklaşan Maçlar" href="/fikstur" />
-            <div className="grid gap-2">
+            <div className="grid grid-cols-1 gap-2">
               {upcoming.length ? (
                 upcoming.map((m) => <MatchCard key={m.id} match={m} />)
               ) : (
@@ -102,7 +102,7 @@ export default async function HomePage() {
           </section>
         </div>
 
-        <div className="grid gap-12 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           <section>
             <SectionTitle title="Gol Krallığı" href="/istatistikler" />
             <Card className="p-3">

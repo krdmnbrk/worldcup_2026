@@ -113,7 +113,7 @@ const TR_COUNTRY: Record<string, string> = {
   Canada: "Kanada",
   "Bosnia and Herzegovina": "Bosna-Hersek",
   "Bosnia-Herzegovina": "Bosna-Hersek",
-  "United States": "Amerika Birleşik Devletleri",
+  "United States": "ABD",
   USA: "ABD",
   Paraguay: "Paraguay",
   Qatar: "Katar",
@@ -181,9 +181,55 @@ const TR_COUNTRY: Record<string, string> = {
   Romania: "Romanya",
   Ireland: "İrlanda",
   Iraq: "Irak",
-  "United Arab Emirates": "Birleşik Arap Emirlikleri",
+  "United Arab Emirates": "BAE",
 };
 
+// Eleme aşamasındaki henüz belli olmayan eşleşmelerde ESPN İngilizce
+// yer-tutucu adlar döndürür ("Group C 2nd Place", "Winner Group A" vb.).
+// Gerçek ülke listesinde bulunmayan adlar burada Türkçeleştirilir.
+function trPlaceholder(name: string): string {
+  const s = name.trim();
+  const G = "([A-L])"; // grup harfi
+
+  // "Group A/B/C 3rd" gibi birden çok grup harfi içeren üçüncülük yer tutucuları
+  if (/\b(?:third|3rd)\b/i.test(s) || /\b(?:3rd|third)\s+place\b/i.test(s)) {
+    const letters = s.match(/\b[A-L]\b/g);
+    if (letters && letters.length > 1) return `${letters.join("/")} 3.leri`;
+    if (letters && letters.length === 1) return `${letters[0]} Grubu 3.sü`;
+    return "Gruplar 3.sü";
+  }
+
+  // Grup lideri: "Winner Group X" / "Group X Winner"
+  let m =
+    s.match(new RegExp(`^winner\\s+group\\s+${G}$`, "i")) ||
+    s.match(new RegExp(`^group\\s+${G}\\s+winner$`, "i"));
+  if (m) return `${m[1].toUpperCase()} Grubu Lideri`;
+
+  // Grup ikincisi: "Runner-Up Group X" / "Group X Runner-Up" / "Group X 2nd Place" / "2nd Place Group X"
+  m =
+    s.match(new RegExp(`^runner[-\\s]?up\\s+group\\s+${G}$`, "i")) ||
+    s.match(new RegExp(`^group\\s+${G}\\s+runner[-\\s]?up$`, "i")) ||
+    s.match(new RegExp(`^group\\s+${G}\\s+2nd\\s+place$`, "i")) ||
+    s.match(new RegExp(`^2nd\\s+place\\s+group\\s+${G}$`, "i"));
+  if (m) return `${m[1].toUpperCase()} Grubu 2.si`;
+
+  // Yer tutucu kalıbı tespit edilmediyse, sızan İngilizce sözcükleri çevir.
+  if (/\b(group|winner|runner[-\s]?up|place|best|2nd|3rd)\b/i.test(s)) {
+    return s
+      .replace(/\brunner[-\s]?up\b/gi, "2.si")
+      .replace(/\bwinner\b/gi, "Lideri")
+      .replace(/\bbest\b/gi, "En iyi")
+      .replace(/\bgroup\b/gi, "Grup")
+      .replace(/\bplace\b/gi, ".")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
+  return name;
+}
+
 export function trCountry(name: string): string {
-  return TR_COUNTRY[name] ?? name;
+  const known = TR_COUNTRY[name];
+  if (known) return known;
+  return trPlaceholder(name);
 }

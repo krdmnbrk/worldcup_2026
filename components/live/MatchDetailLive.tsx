@@ -183,7 +183,7 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
             hint="Kadrolar, kritik anlar ve istatistikler maç başladığında burada görünecek."
           />
         ) : (
-          <div className="grid gap-8 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
             <div className="space-y-8 lg:col-span-3">
               <section>
                 <h2 className="mb-3 text-lg font-bold text-white">Kritik Anlar</h2>

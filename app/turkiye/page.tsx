@@ -68,7 +68,7 @@ export default async function TurkiyePage() {
           <MatchList matches={matches} emptyText="Maç bulunamadı." showGroup={false} />
         </section>
 
-        <div className="grid gap-10 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           {groupStanding && (
             <section>
               <SectionTitle title={`Grup ${groupStanding.groupId} Durumu`} />
@@ -93,7 +93,7 @@ export default async function TurkiyePage() {
         <section>
           <SectionTitle title="Kadro" subtitle={`${squad.length} oyuncu`} />
           {sortedSquad.length ? (
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {sortedSquad.map((p) => (
                 <PlayerCard key={p.id} player={p} />
               ))}
