@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { flagcdnUrl } from "@/lib/flags";
+import { trCountry } from "@/lib/i18n";
 
 export function TeamFlag({
   abbr,
@@ -19,6 +20,7 @@ export function TeamFlag({
   const candidates = [logo, flagcdnUrl(abbr)].filter(Boolean) as string[];
   const [idx, setIdx] = useState(0);
   const src = candidates[idx];
+  const display = name ? trCountry(name) : abbr || "bayrak";
 
   const box = {
     width: size,
@@ -31,9 +33,9 @@ export function TeamFlag({
       <span
         style={box}
         className={`grid place-items-center rounded-md bg-slate-700 text-[10px] font-bold text-slate-200 ${className}`}
-        title={name}
+        title={display}
       >
-        {(abbr || name || "?").slice(0, 3).toUpperCase()}
+        {(abbr || display || "?").slice(0, 3).toUpperCase()}
       </span>
     );
   }
@@ -42,7 +44,7 @@ export function TeamFlag({
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
-      alt={name || abbr || "bayrak"}
+      alt={display}
       width={size}
       height={size}
       loading="lazy"
