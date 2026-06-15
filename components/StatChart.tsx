@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import {
   Bar,
   BarChart,
@@ -18,6 +18,18 @@ export interface ChartDatum {
 
 const COLORS = ["#10b981", "#22c55e", "#34d399", "#4ade80", "#6ee7b7"];
 
+// Recharts ResponsiveContainer SSR'da boyut hesaplayamaz; hidrasyon uyuşmazlığını
+// önlemek için yalnızca istemcide kurulur. useSyncExternalStore: sunucuda ve ilk
+// istemci render'ında false, hidrasyondan sonra true (effect'te setState yok).
+const emptySubscribe = () => () => {};
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 export function BarChartCard({
   data,
   height = 280,
@@ -29,8 +41,7 @@ export function BarChartCard({
   color?: string;
   multicolor?: boolean;
 }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
 
   if (!data.length)
     return (

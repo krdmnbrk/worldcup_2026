@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 2026 FIFA Dünya Kupası — Takip Merkezi
 
-## Getting Started
+Türkçe, mobil öncelikli, **tamamen statik** bir 2026 Dünya Kupası takip sitesi.
+Canlı skorlar, fikstür, grup tabloları, eleme ağacı, turnuva istatistikleri ve
+oyuncu/takım profilleri. Veri kaynağı **yalnızca ESPN'in anahtarsız açık API'si**
+(ücretli/ikinci sağlayıcı yok).
 
-First, run the development server:
+🔗 Canlı: <https://krdmnbrk.github.io/worldcup_2026/>
+
+## Yığın
+
+- **Next.js 16** (App Router) + **React 19** + **TypeScript** (strict)
+- **Tailwind CSS v4** · **Recharts** (istatistik grafikleri)
+- `output: "export"` ile **statik dışa aktarım** → GitHub Pages (`/worldcup_2026` alt yolu)
+- **PWA**: manifest + service worker (HTML network-first, hashed varlık cache-first)
+
+## Veri mimarisi
+
+İki ayrı yol; ikisi de aynı normalize katmanını (`lib/espn/normalize.ts`) paylaşır:
+
+| Yol | Nerede | Ne için |
+|-----|--------|---------|
+| **Build-time** | `lib/data.ts` (+ `lib/espn/client.ts`) | Statik sayfaları üretir; başarılı çekim `data/snapshots/*.json`'a yazılır |
+| **Canlı (tarayıcı)** | `lib/espn/browser.ts` + `components/useEspnPoll.ts` | Sayfa açıkken ESPN'den doğrudan (CORS açık) skor/dakika tazeler |
+| **Dayanıklılık** | `lib/snapshot.ts` (`withSnapshot`) | ESPN erişilemezse son bilinen anlık görüntüye düşer (`stale` rozeti) |
+
+Turnuva tarih pencereleri tek kaynakta: `TOURNAMENT_CHUNKS` (`lib/espn/endpoints.ts`).
+
+## Geliştirme
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Komutlar
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Komut | Açıklama |
+|-------|----------|
+| `npm run dev` | Geliştirme sunucusu |
+| `npm run build` | Statik dışa aktarım (`out/`) |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run check:espn` | ESPN uçlarının gerçek WC2026 verisi döndürdüğünü doğrular |
+| `npm run fetch:photos` | Wikimedia'dan oyuncu fotoğrafları indirir |
+| `npm run optimize:photos` | Fotoğrafları webp'ye çevirir/küçültür |
+| `npm run gen:icons` | PWA ikonlarını üretir |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Dağıtım
 
-## Learn More
+GitHub Actions (`.github/workflows/deploy.yml`): `push` (master) + cron (`*/30`) +
+elle tetik. **Kalite kapısı**: `lint → typecheck → build` geçmeden deploy olmaz.
+Canlı veri zaten tarayıcıda tazelendiğinden, periyodik yeniden derlemenin asıl
+işlevi yeni maç/oyuncu sayfalarını ve build-time snapshot'ları güncellemektir.
 
-To learn more about Next.js, take a look at the following resources:
+## Kaynak künyesi
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Maç/oyuncu/istatistik verisi ve görsellerin çoğu **ESPN açık API**'sinden gelir;
+eksik bayraklar için `flagcdn.com`, bazı oyuncu fotoğrafları için **Wikimedia
+Commons** (CC) görsel yedeği kullanılır. Takım armaları ilgili federasyonların
+markasıdır, yalnızca tanıtım amaçlı kullanılır. Bu gayriresmî bir hayran projesidir.

@@ -29,6 +29,9 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # Kalite kapısı: kırık kod deploy olmasın (lint → tip → derleme).
+      - run: npm run lint
+      - run: npm run typecheck
       - run: npm run build
       - run: touch out/.nojekyll
       - uses: actions/configure-pages@v5

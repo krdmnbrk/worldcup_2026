@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { getTeamPage, getTeams } from "@/lib/data";
 import {
   Container,
-  Card,
   SectionTitle,
   Pill,
   StaleBanner,

@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "check:espn": "node scripts/check-espn.mjs",
+    "fetch:photos": "node scripts/fetch-player-photos.mjs",
+    "optimize:photos": "node scripts/optimize-photos.mjs",
+    "gen:icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
     "next": "16.2.9",

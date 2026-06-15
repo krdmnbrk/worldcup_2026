@@ -2,7 +2,7 @@
 // Statik GitHub Pages sürümünde canlı güncellemeyi bunlar sağlar.
 // Sunucuya özel hiçbir şey (fs/snapshot/next önbellek) import ETMEZ — yalnızca saf normalize'lar.
 
-import { endpoints } from "@/lib/espn/endpoints";
+import { endpoints, TOURNAMENT_CHUNKS } from "@/lib/espn/endpoints";
 import {
   normalizeScoreboard,
   normalizeStandings,
@@ -18,15 +18,6 @@ import type {
   Player,
   MatchPreview,
 } from "@/lib/domain/types";
-
-const CHUNKS = [
-  "20260611-20260617",
-  "20260618-20260624",
-  "20260625-20260701",
-  "20260702-20260708",
-  "20260709-20260715",
-  "20260716-20260719",
-];
 
 async function getJson(url: string): Promise<unknown> {
   const res = await fetch(url, { cache: "no-store" });
@@ -44,7 +35,7 @@ function ymd(dateIso: string): string {
 
 export async function browserAllMatches(): Promise<Match[]> {
   const res = await Promise.all(
-    CHUNKS.map((c) =>
+    TOURNAMENT_CHUNKS.map((c) =>
       getJson(endpoints.scoreboard(c))
         .then(normalizeScoreboard)
         .catch(() => [] as Match[]),

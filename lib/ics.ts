@@ -21,9 +21,12 @@ function toICS(iso: string): string {
 }
 
 function esc(s: string): string {
+  // RFC 5545 TEXT kaçışı: ters bölü/noktalı virgül/virgül kaçılır, tüm satır
+  // sonu varyantları (\r\n, \r, \n) tek "\n" dizisine katlanır. Böylece veride
+  // gizli CR/LF ile yeni property/satır enjekte edilemez.
   return String(s)
     .replace(/[\\;,]/g, (m) => "\\" + m)
-    .replace(/\n/g, "\\n");
+    .replace(/\r\n|\r|\n/g, "\\n");
 }
 
 export function buildICS(events: IcsEvent[]): string {

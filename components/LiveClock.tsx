@@ -31,21 +31,24 @@ export function LiveClock({
   const running = !FROZEN.test(statusName || "");
   const canTick = running && !!parsed && anchorMs != null;
 
-  const [, force] = useState(0);
+  // "Şimdi"yi yalnızca interval geri-çağrımında güncelleriz; böylece render saf
+  // kalır (Date.now() render içinde çağrılmaz). İlk tik'e kadar anchor anı baz
+  // alınır → gösterilen dakika doğru başlar, ~10sn'de bir ilerler.
+  const [now, setNow] = useState<number>(anchorMs ?? 0);
   useEffect(() => {
     if (!canTick) return;
-    const id = setInterval(() => force((n) => n + 1), 10000);
+    const id = setInterval(() => setNow(Date.now()), 10000);
     return () => clearInterval(id);
   }, [canTick, anchorMs, displayClock]);
 
   if (statusName && /HALFTIME|HALF_TIME/i.test(statusName)) {
     return <span className={className}>Devre arası</span>;
   }
-  if (!parsed || !canTick) {
+  if (!parsed || !canTick || anchorMs == null) {
     return <span className={className}>{displayClock || ""}</span>;
   }
 
-  const elapsedMin = Math.max(0, Math.floor((Date.now() - anchorMs!) / 60000));
+  const elapsedMin = Math.max(0, Math.floor((now - anchorMs) / 60000));
   const tick = (parsed.plus != null ? parsed.plus : parsed.base) + elapsedMin;
   const text = parsed.plus != null ? `${parsed.base}'+${tick}'` : `${tick}'`;
   return <span className={className}>{text}</span>;

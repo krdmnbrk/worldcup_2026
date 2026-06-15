@@ -1,5 +1,17 @@
 // ESPN açık API uç (URL) kurucuları. Hepsi anahtarsız, league slug = fifa.world.
 
+// Turnuva 11 Haziran – 19 Temmuz 2026. Skorbord tarih-pencereli olduğundan
+// haftalık dilimler halinde taranır ve id'ye göre birleştirilir. Tek kaynak:
+// hem sunucu (lib/data.ts) hem tarayıcı (lib/espn/browser.ts) bunu kullanır.
+export const TOURNAMENT_CHUNKS = [
+  "20260611-20260617",
+  "20260618-20260624",
+  "20260625-20260701",
+  "20260702-20260708",
+  "20260709-20260715",
+  "20260716-20260719",
+] as const;
+
 const SITE = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world";
 const SITE_V2 = "https://site.api.espn.com/apis/v2/sports/soccer/fifa.world";
 const COMMON_V3 =

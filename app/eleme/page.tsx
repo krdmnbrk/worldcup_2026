@@ -25,7 +25,7 @@ export default async function ElemePage() {
 
         {data.bracket.provisional && (
           <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-200">
-            Eşleşmeler geçicidir. Gruplar 27 Haziran'da tamamlanınca eleme
+            Eşleşmeler geçicidir. Gruplar 27 Haziran&apos;da tamamlanınca eleme
             ağacı kesinleşecek.
           </div>
         )}

@@ -14,6 +14,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Klavye odağı görünürlüğü (WCAG 2.4.7). :focus-visible yalnızca klavye/
+   programatik odakta tetiklenir → fare/dokunma tıklamasında halka görünmez. */
+:focus-visible {
+  outline: 2px solid #34d399;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 body {
   background:
     radial-gradient(1200px 600px at 50% -200px, #102a43 0%, transparent 60%),

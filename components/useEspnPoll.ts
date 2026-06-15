@@ -13,8 +13,12 @@ export function useEspnPoll<T>(
 ): { data: T; updatedAt: number | null } {
   const [data, setData] = useState<T>(initial);
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+  // Ref'i render sırasında değil, her render sonrası effect'te güncelleriz
+  // (react-hooks/refs). Timer geri-çağrımı her zaman en güncel fetcher'ı görür.
   const fetcherRef = useRef(fetcher);
-  fetcherRef.current = fetcher;
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+  });
 
   useEffect(() => {
     if (!enabled) return;

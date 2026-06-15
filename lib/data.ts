@@ -2,7 +2,7 @@
 // snapshot ile yedekler ve turnuva geneli toplamları (istatistik, eleme) hesaplar.
 
 import { espnFetch } from "@/lib/espn/client";
-import { endpoints } from "@/lib/espn/endpoints";
+import { endpoints, TOURNAMENT_CHUNKS } from "@/lib/espn/endpoints";
 import {
   normalizeScoreboard,
   normalizeSummary,
@@ -33,17 +33,6 @@ import type {
   DataResult,
 } from "@/lib/domain/types";
 
-// Turnuva 11 Haziran – 19 Temmuz 2026. Skorbord tarih-pencereli olduğundan
-// haftalık dilimler halinde taranır ve id'ye göre birleştirilir.
-const MATCH_CHUNKS = [
-  "20260611-20260617",
-  "20260618-20260624",
-  "20260625-20260701",
-  "20260702-20260708",
-  "20260709-20260715",
-  "20260716-20260719",
-];
-
 const byDate = (a: Match, b: Match) =>
   new Date(a.date).getTime() - new Date(b.date).getTime();
 
@@ -51,7 +40,7 @@ const byDate = (a: Match, b: Match) =>
 
 async function fetchAllMatches(): Promise<Match[]> {
   const results = await Promise.all(
-    MATCH_CHUNKS.map((c) =>
+    TOURNAMENT_CHUNKS.map((c) =>
       espnFetch<unknown>(endpoints.scoreboard(c), {
         revalidate: 60,
         tags: ["matches"],
