@@ -33,7 +33,9 @@ function ymd(dateIso: string): string {
   return `${y}${m}${day}`;
 }
 
-export async function browserAllMatches(): Promise<Match[]> {
+// null döndürür (boş değil) → tüm dilimler başarısızsa son iyi veri korunur,
+// geçici ESPN hatası fikstürü boşaltmaz.
+export async function browserAllMatches(): Promise<Match[] | null> {
   const res = await Promise.all(
     TOURNAMENT_CHUNKS.map((c) =>
       getJson(endpoints.scoreboard(c))
@@ -43,13 +45,15 @@ export async function browserAllMatches(): Promise<Match[]> {
   );
   const map = new Map<string, Match>();
   for (const m of res.flat()) map.set(m.id, m);
+  if (map.size === 0) return null; // hepsi başarısız → güncelleme yok
   return Array.from(map.values()).sort(
     (a, b) => +new Date(a.date) - +new Date(b.date),
   );
 }
 
 // Yalnızca bugünün penceresi (tek istek) — global canlı çubuk için hafif.
-export async function browserLiveToday(): Promise<Match[]> {
+// Boş dizi geçerli sonuçtur (bugün maç yok); hata → null (son iyi veriyi koru).
+export async function browserLiveToday(): Promise<Match[] | null> {
   try {
     const now = Date.now();
     const from = ymd(new Date(now - 86400000).toISOString());
@@ -58,7 +62,7 @@ export async function browserLiveToday(): Promise<Match[]> {
       await getJson(endpoints.scoreboard(`${from}-${to}`)),
     );
   } catch {
-    return [];
+    return null;
   }
 }
 

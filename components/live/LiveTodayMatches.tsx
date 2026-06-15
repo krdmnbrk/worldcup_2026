@@ -1,6 +1,7 @@
 "use client";
 
 import { useEspnPoll } from "@/components/useEspnPoll";
+import { DataFreshness } from "@/components/DataFreshness";
 import { browserAllMatches } from "@/lib/espn/browser";
 import { MatchList } from "@/components/MatchList";
 import { EmptyState } from "@/components/ui";
@@ -9,7 +10,7 @@ import type { Match } from "@/lib/domain/types";
 
 // Ana sayfadaki "Canlı ve Bugün" bölümü — tarayıcıda dakikada bir tazelenir.
 export function LiveTodayMatches({ initial }: { initial: Match[] }) {
-  const { data, updatedAt } = useEspnPoll(
+  const { data, updatedAt, error } = useEspnPoll(
     browserAllMatches,
     60000,
     initial,
@@ -29,6 +30,11 @@ export function LiveTodayMatches({ initial }: { initial: Match[] }) {
       />
     );
   return (
-    <MatchList matches={list} groupByDay={false} liveAnchorMs={updatedAt} />
+    <div className="space-y-2">
+      <div className="flex justify-end text-xs">
+        <DataFreshness updatedAt={updatedAt} error={error} />
+      </div>
+      <MatchList matches={list} groupByDay={false} liveAnchorMs={updatedAt} />
+    </div>
   );
 }

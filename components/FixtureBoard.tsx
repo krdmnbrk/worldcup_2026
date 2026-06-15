@@ -5,6 +5,7 @@ import type { Match } from "@/lib/domain/types";
 import { MatchList } from "@/components/MatchList";
 import { trCountry } from "@/lib/i18n";
 import { useEspnPoll } from "@/components/useEspnPoll";
+import { DataFreshness } from "@/components/DataFreshness";
 import { browserAllMatches } from "@/lib/espn/browser";
 
 type StatusFilter = "all" | "live" | "pre" | "post";
@@ -17,7 +18,7 @@ const STATUS_TABS: { key: StatusFilter; label: string }[] = [
 ];
 
 export function FixtureBoard({ matches }: { matches: Match[] }) {
-  const { data: live, updatedAt } = useEspnPoll(
+  const { data: live, updatedAt, error } = useEspnPoll(
     browserAllMatches,
     60000,
     matches,
@@ -96,7 +97,10 @@ export function FixtureBoard({ matches }: { matches: Match[] }) {
         />
       </div>
 
-      <p className="text-xs text-slate-500">{filtered.length} maç gösteriliyor</p>
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <p className="text-slate-500">{filtered.length} maç gösteriliyor</p>
+        <DataFreshness updatedAt={updatedAt} error={error} />
+      </div>
 
       <MatchList
         matches={filtered}

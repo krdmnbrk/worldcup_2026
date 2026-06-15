@@ -15,14 +15,17 @@ const geistSans = Geist({
 });
 
 const BASE = process.env.NODE_ENV === "production" ? "/worldcup_2026" : "";
+const SITE_URL = "https://krdmnbrk.github.io/worldcup_2026";
+const DESCRIPTION =
+  "2026 FIFA Dünya Kupası'nı takip edin: canlı skorlar, fikstür, grup tabloları, eleme ağacı, istatistikler ve oyuncu profilleri.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: SITE.longTitle,
     template: `%s · ${SITE.title}`,
   },
-  description:
-    "2026 FIFA Dünya Kupası'nı takip edin: canlı skorlar, fikstür, grup tabloları, eleme ağacı, istatistikler ve oyuncu profilleri.",
+  description: DESCRIPTION,
   applicationName: SITE.title,
   appleWebApp: {
     capable: true,
@@ -32,6 +35,28 @@ export const metadata: Metadata = {
   icons: {
     icon: `${BASE}/icons/icon-192.png`,
     apple: `${BASE}/icons/apple-touch-icon.png`,
+  },
+  openGraph: {
+    type: "website",
+    locale: "tr_TR",
+    siteName: SITE.title,
+    title: SITE.longTitle,
+    description: DESCRIPTION,
+    url: `${SITE_URL}/`,
+    images: [
+      {
+        url: `${SITE_URL}/og.png`,
+        width: 1200,
+        height: 630,
+        alt: SITE.longTitle,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE.longTitle,
+    description: DESCRIPTION,
+    images: [`${SITE_URL}/og.png`],
   },
 };
 

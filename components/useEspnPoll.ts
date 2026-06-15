@@ -5,14 +5,17 @@ import { useEffect, useRef, useState } from "react";
 // Tarayıcıda belirli aralıkla ESPN'den veri çeker. Sekme gizliyken bekler,
 // sekme tekrar görünür olunca hemen tazeler. SSR'dan gelen `initial` ile başlar.
 export function useEspnPoll<T>(
-  fetcher: () => Promise<T>,
+  // null döndürmek "bu sefer güncelleme yok" demektir → son iyi veri korunur,
+  // updatedAt ilerlemez (tazelik göstergesi dürüst kalır).
+  fetcher: () => Promise<T | null>,
   intervalMs: number,
   initial: T,
   enabled = true,
   leading = false, // true: mount'ta hemen taze çek (canlı dakika anchor'ı için)
-): { data: T; updatedAt: number | null } {
+): { data: T; updatedAt: number | null; error: boolean } {
   const [data, setData] = useState<T>(initial);
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+  const [error, setError] = useState(false); // son denemenin başarısızlığı (UI uyarısı için)
   // Ref'i render sırasında değil, her render sonrası effect'te güncelleriz
   // (react-hooks/refs). Timer geri-çağrımı her zaman en güncel fetcher'ı görür.
   const fetcherRef = useRef(fetcher);
@@ -40,9 +43,11 @@ export function useEspnPoll<T>(
         if (!cancelled && next != null) {
           setData(next);
           setUpdatedAt(Date.now());
+          setError(false);
           errors = 0;
         }
       } catch {
+        if (!cancelled) setError(true);
         errors = Math.min(errors + 1, 4);
       }
       if (!cancelled) schedule();
@@ -66,5 +71,5 @@ export function useEspnPoll<T>(
     };
   }, [intervalMs, enabled, leading]);
 
-  return { data, updatedAt };
+  return { data, updatedAt, error };
 }
