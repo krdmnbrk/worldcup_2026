@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { MatchEvent, EventType } from "@/lib/domain/types";
 import { EmptyState } from "@/components/ui";
 
@@ -49,9 +50,18 @@ export function KeyMomentsTimeline({
           >
             <span className="text-base leading-none">{ICONS[e.type]}</span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-white">
-                {e.player || "—"}
-              </p>
+              {e.playerId ? (
+                <Link
+                  href={`/oyuncular/${e.playerId}`}
+                  className="block truncate text-sm font-semibold text-white hover:text-emerald-300"
+                >
+                  {e.player || "—"}
+                </Link>
+              ) : (
+                <p className="truncate text-sm font-semibold text-white">
+                  {e.player || "—"}
+                </p>
+              )}
               {note && (
                 <p className="text-[10px] uppercase tracking-wide text-slate-400">
                   {note}

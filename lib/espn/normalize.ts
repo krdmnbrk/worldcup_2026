@@ -29,6 +29,32 @@ function statNum(v: any): number {
   return Number.isFinite(n) ? n : NaN;
 }
 
+// ESPN ölçüleri ABD birimleri (lbs / inch) verir → metrik (kg / cm).
+function weightToKg(numeric?: number, display?: string): string | undefined {
+  if (numeric && Number.isFinite(numeric))
+    return `${Math.round(numeric * 0.453592)} kg`;
+  if (!display) return undefined;
+  const lbs = String(display).match(/([\d.]+)\s*lbs?/i);
+  if (lbs) return `${Math.round(parseFloat(lbs[1]) * 0.453592)} kg`;
+  const kg = String(display).match(/([\d.]+)\s*kg/i);
+  if (kg) return `${Math.round(parseFloat(kg[1]))} kg`;
+  return display;
+}
+function heightToCm(numeric?: number, display?: string): string | undefined {
+  if (numeric && Number.isFinite(numeric))
+    return `${Math.round(numeric * 2.54)} cm`;
+  if (!display) return undefined;
+  const fi = String(display).match(/(\d+)\s*'\s*(\d+)?/); // 6' 3"
+  if (fi) {
+    const ft = parseInt(fi[1], 10) || 0;
+    const inch = fi[2] ? parseInt(fi[2], 10) : 0;
+    return `${Math.round((ft * 12 + inch) * 2.54)} cm`;
+  }
+  const cm = String(display).match(/([\d.]+)\s*cm/i);
+  if (cm) return `${Math.round(parseFloat(cm[1]))} cm`;
+  return display;
+}
+
 export function parseMinute(disp?: string): number {
   if (!disp) return 0;
   const m = String(disp).match(/(\d+)\s*'?(?:\s*\+\s*(\d+))?/);
@@ -441,8 +467,8 @@ export function normalizeRoster(json: any, team?: Team): Player[] {
     jersey: a?.jersey,
     age: a?.age,
     dob: a?.dateOfBirth,
-    height: a?.displayHeight,
-    weight: a?.displayWeight,
+    height: heightToCm(a?.height, a?.displayHeight),
+    weight: weightToKg(a?.weight, a?.displayWeight),
     nationality: a?.citizenship,
     headshot: a?.headshot?.href,
     teamId: team?.id,
@@ -478,8 +504,8 @@ export function normalizeAthlete(json: any): Player {
     jersey: a?.jersey,
     age: a?.age,
     dob: a?.displayDOB || a?.dateOfBirth,
-    height: a?.displayHeight,
-    weight: a?.displayWeight,
+    height: heightToCm(a?.height, a?.displayHeight),
+    weight: weightToKg(a?.weight, a?.displayWeight),
     nationality: a?.citizenship,
     club: a?.team?.name || a?.team?.displayName,
     teamName: a?.team?.name,

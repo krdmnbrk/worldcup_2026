@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getPlayer, getPlayerIndex } from "@/lib/data";
+import { getPlayer, getPlayerIndex, getAllMatches } from "@/lib/data";
 import {
   Container,
   Card,
@@ -16,8 +16,16 @@ import { formatDate } from "@/lib/datetime";
 import type { EventType } from "@/lib/domain/types";
 
 export async function generateStaticParams() {
-  const { data } = await getPlayerIndex();
-  return data.map((p) => ({ oyuncuId: p.id }));
+  // Kadro dizinindeki oyuncular + maç olaylarında geçen (gol/kart) oyuncular —
+  // böylece zaman çizelgesindeki her isim tıklanınca sayfası mevcut olur.
+  const [{ data: index }, { data: matches }] = await Promise.all([
+    getPlayerIndex(),
+    getAllMatches(),
+  ]);
+  const ids = new Set(index.map((p) => p.id));
+  for (const m of matches)
+    for (const e of m.events) if (e.playerId) ids.add(e.playerId);
+  return [...ids].map((id) => ({ oyuncuId: id }));
 }
 
 const ICONS: Record<EventType, string> = {

@@ -291,10 +291,14 @@ export function getPlayer(athleteId: string): Promise<DataResult<PlayerPage>> {
       fetchPlayerIndex(),
       fetchAllMatches(),
     ]);
-    const player: Player = index.find((p) => p.id === athleteId) ?? {
-      id: athleteId,
-      name: "Oyuncu",
-    };
+    const base = index.find((p) => p.id === athleteId);
+    // Kadroda olmayan ama maç olaylarında geçen oyuncu için ismi olaydan al
+    const evName = base
+      ? undefined
+      : allMatches
+          .flatMap((m) => m.events)
+          .find((e) => e.playerId === athleteId && e.player)?.player;
+    const player: Player = base ?? { id: athleteId, name: evName ?? "Oyuncu" };
 
     let goals = 0,
       penalties = 0,
