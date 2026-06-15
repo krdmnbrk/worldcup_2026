@@ -1,21 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parse, tickText, isFrozen, isHalftime } from "@/lib/liveclock";
 
 // Canlı maç dakikasını near-realtime gösterir: ESPN'in displayClock'unu temel alır,
 // son veri anından (anchorMs) bu yana geçen süreyi yerel olarak ekler ve her poll'da
-// yeniden senkronlanır. Devre arası / bitmiş gibi durumlarda saymaz.
-const FROZEN = /HALFTIME|HALF_TIME|END|FULL|SHOOTOUT|PENALT|DELAY|ABANDON|SUSPEND/i;
-
-function parse(dc: string): { base: number; plus: number | null } | null {
-  const m = dc.match(/^(\d+)'?(?:\s*\+\s*(\d+)'?)?/);
-  if (!m) return null;
-  return {
-    base: parseInt(m[1], 10),
-    plus: m[2] != null ? parseInt(m[2], 10) : null,
-  };
-}
-
+// yeniden senkronlanır. Saf ayrıştırma/biçimleme mantığı lib/liveclock.ts'te.
 export function LiveClock({
   displayClock,
   statusName,
@@ -28,8 +18,7 @@ export function LiveClock({
   className?: string;
 }) {
   const parsed = displayClock ? parse(displayClock) : null;
-  const running = !FROZEN.test(statusName || "");
-  const canTick = running && !!parsed && anchorMs != null;
+  const canTick = !isFrozen(statusName) && !!parsed && anchorMs != null;
 
   // "Şimdi"yi yalnızca interval geri-çağrımında güncelleriz; böylece render saf
   // kalır (Date.now() render içinde çağrılmaz). İlk tik'e kadar anchor anı baz
@@ -41,7 +30,7 @@ export function LiveClock({
     return () => clearInterval(id);
   }, [canTick, anchorMs, displayClock]);
 
-  if (statusName && /HALFTIME|HALF_TIME/i.test(statusName)) {
+  if (isHalftime(statusName)) {
     return <span className={className}>Devre arası</span>;
   }
   if (!parsed || !canTick || anchorMs == null) {
@@ -49,7 +38,5 @@ export function LiveClock({
   }
 
   const elapsedMin = Math.max(0, Math.floor((now - anchorMs) / 60000));
-  const tick = (parsed.plus != null ? parsed.plus : parsed.base) + elapsedMin;
-  const text = parsed.plus != null ? `${parsed.base}'+${tick}'` : `${tick}'`;
-  return <span className={className}>{text}</span>;
+  return <span className={className}>{tickText(parsed, elapsedMin)}</span>;
 }

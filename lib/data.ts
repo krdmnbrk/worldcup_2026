@@ -591,7 +591,7 @@ export interface Qualification {
   complete: boolean;
 }
 
-function computeQualification(standings: GroupStanding[]): Qualification {
+export function computeQualification(standings: GroupStanding[]): Qualification {
   const groups: GroupQualifier[] = standings.map((g) => {
     const rows = g.rows;
     const complete = rows.every((r) => r.played >= 3) && rows.length >= 4;
