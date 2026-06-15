@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Match } from "@/lib/domain/types";
 import { TeamFlag } from "@/components/TeamFlag";
+import { LiveClock } from "@/components/LiveClock";
 import { LiveBadge, Pill } from "@/components/ui";
 import { trCountry } from "@/lib/i18n";
 import { formatTime, formatDayShort } from "@/lib/datetime";
@@ -39,9 +40,11 @@ function Side({
 export function MatchCard({
   match,
   showGroup = true,
+  liveAnchorMs = null,
 }: {
   match: Match;
   showGroup?: boolean;
+  liveAnchorMs?: number | null;
 }) {
   const { home, away, status } = match;
   const hasScore = status === "in" || status === "post";
@@ -102,7 +105,11 @@ export function MatchCard({
           )}
           {status === "in" && match.clock && (
             <div className="text-[10px] font-semibold text-red-300">
-              {match.clock}
+              <LiveClock
+                displayClock={match.clock}
+                statusName={match.statusName}
+                anchorMs={liveAnchorMs}
+              />
             </div>
           )}
         </div>

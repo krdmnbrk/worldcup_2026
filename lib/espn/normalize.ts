@@ -191,6 +191,7 @@ export function normalizeScoreboard(json: any): Match[] {
       status: state,
       statusDetail: st.shortDetail || st.detail || st.description,
       clock: comp?.status?.displayClock,
+      statusName: st.name,
       completed: !!st.completed,
       stage,
       roundLabel:

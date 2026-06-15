@@ -9,7 +9,13 @@ import type { Match } from "@/lib/domain/types";
 
 // Ana sayfadaki "Canlı ve Bugün" bölümü — tarayıcıda dakikada bir tazelenir.
 export function LiveTodayMatches({ initial }: { initial: Match[] }) {
-  const { data } = useEspnPoll(browserAllMatches, 60000, initial);
+  const { data, updatedAt } = useEspnPoll(
+    browserAllMatches,
+    60000,
+    initial,
+    true,
+    true,
+  );
   const todayKey = istanbulDayKey(new Date().toISOString());
   const list = data
     .filter((m) => m.status === "in" || istanbulDayKey(m.date) === todayKey)
@@ -22,5 +28,7 @@ export function LiveTodayMatches({ initial }: { initial: Match[] }) {
         hint="Yaklaşan maçlar için fikstüre göz atın."
       />
     );
-  return <MatchList matches={list} groupByDay={false} />;
+  return (
+    <MatchList matches={list} groupByDay={false} liveAnchorMs={updatedAt} />
+  );
 }

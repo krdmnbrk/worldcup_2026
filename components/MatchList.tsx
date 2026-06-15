@@ -8,11 +8,13 @@ export function MatchList({
   emptyText = "Maç bulunamadı.",
   groupByDay = true,
   showGroup = true,
+  liveAnchorMs = null,
 }: {
   matches: Match[];
   emptyText?: string;
   groupByDay?: boolean;
   showGroup?: boolean;
+  liveAnchorMs?: number | null;
 }) {
   if (!matches.length) return <EmptyState title={emptyText} />;
 
@@ -20,7 +22,7 @@ export function MatchList({
     return (
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {matches.map((m) => (
-          <MatchCard key={m.id} match={m} showGroup={showGroup} />
+          <MatchCard key={m.id} match={m} showGroup={showGroup} liveAnchorMs={liveAnchorMs} />
         ))}
       </div>
     );
@@ -53,7 +55,7 @@ export function MatchList({
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {dayMatches.map((m) => (
-              <MatchCard key={m.id} match={m} showGroup={showGroup} />
+              <MatchCard key={m.id} match={m} showGroup={showGroup} liveAnchorMs={liveAnchorMs} />
             ))}
           </div>
         </div>

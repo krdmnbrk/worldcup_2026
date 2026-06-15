@@ -4,13 +4,20 @@ import Link from "next/link";
 import { useEspnPoll } from "@/components/useEspnPoll";
 import { browserLiveToday } from "@/lib/espn/browser";
 import { TeamFlag } from "@/components/TeamFlag";
+import { LiveClock } from "@/components/LiveClock";
 import { trCountry } from "@/lib/i18n";
 import type { Match } from "@/lib/domain/types";
 
 // Mobilde alt navigasyonun hemen üstünde sabit duran canlı maç çubuğu.
 // Canlı maç yoksa görünmez. Hafif (tek istek) ve yalnızca mobilde.
 export function LiveBar() {
-  const { data } = useEspnPoll<Match[]>(browserLiveToday, 45000, []);
+  const { data, updatedAt } = useEspnPoll<Match[]>(
+    browserLiveToday,
+    45000,
+    [],
+    true,
+    true,
+  );
   const live = data.filter((m) => m.status === "in");
   if (!live.length) return null;
   const m = live[0];
@@ -35,7 +42,15 @@ export function LiveBar() {
         </span>
         <TeamFlag abbr={m.away.abbr} logo={m.away.logo} name={m.away.name} size={18} />
         <span className="shrink-0 text-[10px] font-semibold text-red-300">
-          {m.clock || "Canlı"}
+          {m.clock ? (
+            <LiveClock
+              displayClock={m.clock}
+              statusName={m.statusName}
+              anchorMs={updatedAt}
+            />
+          ) : (
+            "Canlı"
+          )}
         </span>
         {live.length > 1 && (
           <span className="shrink-0 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-slate-300">

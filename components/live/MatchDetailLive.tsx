@@ -23,6 +23,7 @@ import { KeyMomentsTimeline } from "@/components/KeyMomentsTimeline";
 import { LineupPitch } from "@/components/LineupPitch";
 import { MatchSummaryStats } from "@/components/MatchSummaryStats";
 import { MatchPreview } from "@/components/MatchPreview";
+import { LiveClock } from "@/components/LiveClock";
 import { AddToCalendar } from "@/components/AddToCalendar";
 import { venueInfo } from "@/data/venues";
 import { trCountry } from "@/lib/i18n";
@@ -60,11 +61,12 @@ function TeamBlock({
 
 export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
   const id = initialMatch.id;
-  const { data: match } = useEspnPoll<Match>(
+  const { data: match, updatedAt } = useEspnPoll<Match>(
     async () => (await browserMatch(id, initialMatch.date)) ?? initialMatch,
     30000,
     initialMatch,
     initialMatch.status !== "post",
+    true, // canlı dakika anchor'ı için hemen taze çek
   );
 
   const [summary, setSummary] = useState<NormalizedSummary | null>(null);
@@ -182,7 +184,11 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
                 )}
               {match.status === "in" && match.clock && (
                 <div className="mt-1 text-xs font-semibold text-red-300">
-                  {match.clock}
+                  <LiveClock
+                    displayClock={match.clock}
+                    statusName={match.statusName}
+                    anchorMs={updatedAt}
+                  />
                 </div>
               )}
               {!played && (

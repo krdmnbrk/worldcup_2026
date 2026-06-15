@@ -9,6 +9,7 @@ export function useEspnPoll<T>(
   intervalMs: number,
   initial: T,
   enabled = true,
+  leading = false, // true: mount'ta hemen taze çek (canlı dakika anchor'ı için)
 ): { data: T; updatedAt: number | null } {
   const [data, setData] = useState<T>(initial);
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
@@ -43,8 +44,8 @@ export function useEspnPoll<T>(
       if (!cancelled) schedule();
     };
 
-    // İlk turu intervalMs sonra çalıştır (SSR initial zaten elimizde)
-    timer = setTimeout(run, intervalMs);
+    // leading=true ise hemen, değilse intervalMs sonra (SSR initial zaten elimizde)
+    timer = setTimeout(run, leading ? 500 : intervalMs);
 
     const onVisible = () => {
       if (!document.hidden) {
@@ -59,7 +60,7 @@ export function useEspnPoll<T>(
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [intervalMs, enabled]);
+  }, [intervalMs, enabled, leading]);
 
   return { data, updatedAt };
 }

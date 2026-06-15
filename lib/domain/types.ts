@@ -56,7 +56,8 @@ export interface Match {
   date: string; // ISO UTC
   status: MatchStatus;
   statusDetail?: string; // "FT", "HT" vb.
-  clock?: string;
+  clock?: string; // ESPN displayClock, ör. "67'", "45'+2'"
+  statusName?: string; // ESPN status.type.name, ör. "STATUS_HALFTIME"
   completed: boolean;
   stage: Stage;
   roundLabel: string; // TR etiket

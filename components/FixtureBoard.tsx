@@ -17,7 +17,13 @@ const STATUS_TABS: { key: StatusFilter; label: string }[] = [
 ];
 
 export function FixtureBoard({ matches }: { matches: Match[] }) {
-  const { data: live } = useEspnPoll(browserAllMatches, 60000, matches);
+  const { data: live, updatedAt } = useEspnPoll(
+    browserAllMatches,
+    60000,
+    matches,
+    true,
+    true,
+  );
   const [status, setStatus] = useState<StatusFilter>("all");
   const [group, setGroup] = useState<string>("all");
   const [query, setQuery] = useState("");
@@ -95,6 +101,7 @@ export function FixtureBoard({ matches }: { matches: Match[] }) {
       <MatchList
         matches={filtered}
         emptyText="Filtreye uyan maç yok."
+        liveAnchorMs={updatedAt}
       />
     </div>
   );
