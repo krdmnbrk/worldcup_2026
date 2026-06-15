@@ -116,6 +116,11 @@ export function MatchCard({
           {[match.venue.name, match.venue.city].filter(Boolean).join(" · ")}
         </div>
       )}
+      {match.broadcasts && match.broadcasts.length > 0 && (
+        <div className="mt-1 truncate text-center text-[11px] text-slate-500">
+          📺 {match.broadcasts.slice(0, 3).join(", ")}
+        </div>
+      )}
     </Link>
   );
 }

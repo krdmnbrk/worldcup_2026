@@ -10,6 +10,7 @@ import {
   EmptyState,
 } from "@/components/ui";
 import { TeamFlag } from "@/components/TeamFlag";
+import { FormBadge } from "@/components/FormBadge";
 import { GroupTable } from "@/components/GroupTable";
 import { MatchList } from "@/components/MatchList";
 import { PlayerCard } from "@/components/PlayerCard";
@@ -41,7 +42,8 @@ export default async function TeamPage({
 }) {
   const { takimId } = await params;
   const { data, stale } = await getTeamPage(takimId);
-  const { team, standingSummary, groupId, squad, matches, groupStanding } = data;
+  const { team, standingSummary, groupId, squad, matches, groupStanding, form } =
+    data;
 
   const sortedSquad = [...squad].sort(
     (a, b) => Number(a.jersey ?? 99) - Number(b.jersey ?? 99),
@@ -64,6 +66,12 @@ export default async function TeamPage({
               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-400">
                 {groupId && <Pill tone="emerald">Grup {groupId}</Pill>}
                 {standingSummary && <span>{standingSummary}</span>}
+                {form.length > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-slate-500">Form:</span>
+                    <FormBadge results={form} />
+                  </span>
+                )}
               </div>
             </div>
           </div>

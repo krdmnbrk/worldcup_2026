@@ -9,9 +9,15 @@ import {
   normalizeSummary,
   normalizeFormation,
   normalizeAthlete,
+  normalizePreview,
   type NormalizedSummary,
 } from "@/lib/espn/normalize";
-import type { Match, GroupStanding, Player } from "@/lib/domain/types";
+import type {
+  Match,
+  GroupStanding,
+  Player,
+  MatchPreview,
+} from "@/lib/domain/types";
 
 const CHUNKS = [
   "20260611-20260617",
@@ -94,6 +100,14 @@ export async function browserFormation(
     return normalizeFormation(await getJson(endpoints.formation(eventId, teamId)));
   } catch {
     return undefined;
+  }
+}
+
+export async function browserPreview(id: string): Promise<MatchPreview | null> {
+  try {
+    return normalizePreview(await getJson(endpoints.summary(id)));
+  } catch {
+    return null;
   }
 }
 

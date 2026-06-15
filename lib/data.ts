@@ -207,11 +207,26 @@ export interface TeamPage {
   squad: Player[];
   matches: Match[];
   groupStanding?: GroupStanding;
+  form: string[]; // son 5 maç (en yeni başta): "W"|"D"|"L"
 }
 
 function teamStandingSummary(g?: GroupStanding, teamId?: string): string | undefined {
   const row = g?.rows.find((r) => r.team.id === teamId);
   return row ? `Grup ${g!.groupId} · ${row.rank}. sıra · ${row.points} puan` : undefined;
+}
+
+// Takımın oynanmış son 5 maçından form (en yeni başta)
+function computeForm(matches: Match[], teamId: string): string[] {
+  return matches
+    .filter((m) => m.status === "post")
+    .sort((a, b) => +new Date(b.date) - +new Date(a.date))
+    .slice(0, 5)
+    .map((m) => {
+      const isHome = m.home.id === teamId;
+      const gf = (isHome ? m.home.score : m.away.score) ?? 0;
+      const ga = (isHome ? m.away.score : m.home.score) ?? 0;
+      return gf > ga ? "W" : gf < ga ? "L" : "D";
+    });
 }
 
 export function getTeamPage(teamId: string): Promise<DataResult<TeamPage>> {
@@ -241,6 +256,7 @@ export function getTeamPage(teamId: string): Promise<DataResult<TeamPage>> {
       squad,
       matches,
       groupStanding,
+      form: computeForm(matches, teamId),
     };
   });
 }
@@ -676,6 +692,7 @@ export function getTurkiye(): Promise<DataResult<TurkiyePage | null>> {
       matches,
       groupStanding,
       topScorers,
+      form: computeForm(matches, id),
     };
   });
 }

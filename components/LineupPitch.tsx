@@ -1,8 +1,28 @@
 import Link from "next/link";
-import type { TeamLineup, LineupPlayer } from "@/lib/domain/types";
+import type {
+  TeamLineup,
+  LineupPlayer,
+  PlayerMatchStat,
+} from "@/lib/domain/types";
 import { PlayerImage } from "@/components/PlayerImage";
 
 type Cat = "GK" | "DEF" | "MID" | "FWD";
+
+// Oyuncunun maçtaki öne çıkan katkıları (gol/asist/kart) küçük rozetler
+function StatBadges({ s }: { s?: PlayerMatchStat }) {
+  if (!s) return null;
+  const parts: string[] = [];
+  if (s.goals > 0) parts.push(s.goals > 1 ? `⚽×${s.goals}` : "⚽");
+  if (s.assists > 0) parts.push(s.assists > 1 ? `🅰×${s.assists}` : "🅰");
+  if (s.red) parts.push("🟥");
+  else if (s.yellow) parts.push("🟨");
+  if (!parts.length) return null;
+  return (
+    <span className="whitespace-nowrap text-[10px] leading-none">
+      {parts.join(" ")}
+    </span>
+  );
+}
 
 function categorize(pos?: string): Cat {
   const p = (pos || "").toUpperCase();
@@ -31,6 +51,7 @@ function PlayerDot({ p }: { p: LineupPlayer }) {
       <span className="max-w-full truncate rounded bg-black/40 px-1 text-[10px] font-medium text-white">
         {last}
       </span>
+      <StatBadges s={p.stats} />
     </Link>
   );
 }
@@ -91,6 +112,7 @@ export function LineupPitch({ lineup }: { lineup: TeamLineup }) {
                 <PlayerImage id={p.athleteId} src={p.headshot} name={p.name} size={22} />
                 <span className="text-xs text-slate-500">{p.jersey}</span>
                 <span className="truncate">{p.name}</span>
+                <StatBadges s={p.stats} />
               </Link>
             ))}
           </div>

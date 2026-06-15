@@ -68,6 +68,17 @@ export interface Match {
   broadcasts?: string[];
 }
 
+export interface PlayerMatchStat {
+  goals: number;
+  assists: number;
+  shots: number;
+  shotsOnTarget: number;
+  fouls: number;
+  saves: number;
+  yellow: boolean;
+  red: boolean;
+}
+
 export interface LineupPlayer {
   athleteId: string;
   name: string;
@@ -79,6 +90,31 @@ export interface LineupPlayer {
   subbedIn?: boolean;
   subbedOut?: boolean;
   subbedForJersey?: string;
+  stats?: PlayerMatchStat;
+}
+
+// Maç önizleme (pre-maç): form + H2H + bahis oranı
+export interface PreviewGame {
+  date?: string;
+  result?: "W" | "D" | "L";
+  score?: string;
+  opponent?: string;
+  opponentLogo?: string;
+  competition?: string;
+}
+export interface TeamForm {
+  teamId: string;
+  games: PreviewGame[];
+}
+export interface MatchOdds {
+  provider?: string;
+  detail?: string; // ör. "MEX -1.5"
+  overUnder?: string;
+}
+export interface MatchPreview {
+  odds?: MatchOdds;
+  teamForm: TeamForm[];
+  h2h: PreviewGame[]; // ev sahibi perspektifinden geçmiş karşılaşmalar
 }
 
 export interface TeamLineup {

@@ -10,11 +10,15 @@ import type {
   Team,
   TeamLineup,
   LineupPlayer,
+  PlayerMatchStat,
   TeamMatchStat,
   GroupStanding,
   StandingRow,
   Player,
   PlayerSeasonStat,
+  MatchPreview,
+  TeamForm,
+  PreviewGame,
 } from "@/lib/domain/types";
 import { stageLabel, statLabel, FEATURED_STATS } from "@/lib/i18n";
 import { teamLogoUrl } from "@/lib/espn/endpoints";
@@ -211,6 +215,37 @@ export interface NormalizedSummary {
   teamStats: TeamMatchStat[];
   referee?: string;
   attendance?: number;
+  recap?: { headline: string; text: string };
+}
+
+function stripHtml(html?: string): string {
+  if (!html) return "";
+  return String(html)
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&#39;|&rsquo;|&lsquo;/g, "'")
+    .replace(/&quot;|&ldquo;|&rdquo;/g, '"')
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function playerStatVal(stats: any[], name: string): number {
+  const s = (stats ?? []).find((x) => x?.name === name);
+  return s ? num(s.value ?? s.displayValue) : 0;
+}
+function normalizePlayerMatchStat(stats: any): PlayerMatchStat | undefined {
+  if (!Array.isArray(stats) || !stats.length) return undefined;
+  return {
+    goals: playerStatVal(stats, "totalGoals"),
+    assists: playerStatVal(stats, "goalAssists"),
+    shots: playerStatVal(stats, "totalShots"),
+    shotsOnTarget: playerStatVal(stats, "shotsOnTarget"),
+    fouls: playerStatVal(stats, "foulsCommitted"),
+    saves: playerStatVal(stats, "saves"),
+    yellow: playerStatVal(stats, "yellowCards") > 0,
+    red: playerStatVal(stats, "redCards") > 0,
+  };
 }
 
 function normalizeLineupPlayer(p: any): LineupPlayer {
@@ -226,6 +261,7 @@ function normalizeLineupPlayer(p: any): LineupPlayer {
     subbedIn: !!p?.subbedIn,
     subbedOut: !!p?.subbedOut,
     subbedForJersey: p?.subbedOutFor?.jersey,
+    stats: normalizePlayerMatchStat(p?.stats),
   };
 }
 
@@ -292,6 +328,12 @@ export function normalizeSummary(json: any): NormalizedSummary {
     officials.find((o) => o?.position?.name === "Referee")?.fullName ||
     officials[0]?.fullName;
 
+  const article = json?.article;
+  const recap =
+    article?.headline && article?.story
+      ? { headline: String(article.headline), text: stripHtml(article.story) }
+      : undefined;
+
   return {
     lineups,
     teamStats,
@@ -299,11 +341,50 @@ export function normalizeSummary(json: any): NormalizedSummary {
     attendance: json?.gameInfo?.attendance
       ? num(json.gameInfo.attendance)
       : undefined,
+    recap,
   };
 }
 
 export function normalizeFormation(json: any): string | undefined {
   return json?.formation?.summary || undefined;
+}
+
+// ---- maç önizleme (pre-maç): form + H2H + bahis oranı ----
+function mapPreviewGame(e: any): PreviewGame {
+  const r = String(e?.gameResult ?? "").toUpperCase();
+  return {
+    date: e?.gameDate,
+    result: r === "W" || r === "D" || r === "L" ? (r as "W" | "D" | "L") : undefined,
+    score: e?.score ? String(e.score) : undefined,
+    opponent:
+      typeof e?.opponent === "string"
+        ? e.opponent
+        : e?.opponent?.displayName || e?.opponent?.abbreviation || undefined,
+    opponentLogo: e?.opponentLogo || e?.opponent?.logos?.[0]?.href,
+    competition: e?.leagueAbbreviation || e?.leagueName || e?.competitionName,
+  };
+}
+
+export function normalizePreview(json: any): MatchPreview {
+  const o = json?.odds?.[0] ?? json?.pickcenter?.[0];
+  const odds = o
+    ? {
+        provider: o?.provider?.name,
+        detail: o?.details,
+        overUnder: o?.overUnder != null ? String(o.overUnder) : undefined,
+      }
+    : undefined;
+
+  const teamForm: TeamForm[] = (json?.lastFiveGames ?? []).map((t: any) => ({
+    teamId: String(t?.team?.id ?? ""),
+    games: (t?.events ?? []).map(mapPreviewGame),
+  }));
+
+  const h2h: PreviewGame[] = (json?.headToHeadGames?.[0]?.events ?? []).map(
+    mapPreviewGame,
+  );
+
+  return { odds, teamForm, h2h };
 }
 
 // ---- grup tabloları (apis/v2) ----

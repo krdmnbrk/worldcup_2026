@@ -7,6 +7,7 @@ import {
   browserMatch,
   browserSummary,
   browserFormation,
+  browserPreview,
 } from "@/lib/espn/browser";
 import type { NormalizedSummary } from "@/lib/espn/normalize";
 import {
@@ -20,10 +21,15 @@ import { TeamFlag } from "@/components/TeamFlag";
 import { KeyMomentsTimeline } from "@/components/KeyMomentsTimeline";
 import { LineupPitch } from "@/components/LineupPitch";
 import { MatchSummaryStats } from "@/components/MatchSummaryStats";
+import { MatchPreview } from "@/components/MatchPreview";
 import { trCountry } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/datetime";
 import { coachFor } from "@/data/coaches";
-import type { Match, TeamLineup } from "@/lib/domain/types";
+import type {
+  Match,
+  TeamLineup,
+  MatchPreview as MatchPreviewData,
+} from "@/lib/domain/types";
 
 function TeamBlock({
   name,
@@ -61,8 +67,21 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
   const [summary, setSummary] = useState<NormalizedSummary | null>(null);
   const [formations, setFormations] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
+  const [preview, setPreview] = useState<MatchPreviewData | null>(null);
 
   const played = match.status === "in" || match.status === "post";
+
+  // Pre-maç: önizleme (H2H + form + oran) çek
+  useEffect(() => {
+    if (played) return;
+    let cancelled = false;
+    browserPreview(id).then((p) => {
+      if (!cancelled) setPreview(p);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, played]);
 
   useEffect(() => {
     if (!played) return;
@@ -172,19 +191,46 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
             {summary?.attendance ? (
               <span>👥 {summary.attendance.toLocaleString("tr-TR")} seyirci</span>
             ) : null}
+            {match.broadcasts && match.broadcasts.length > 0 && (
+              <span>📺 {match.broadcasts.join(", ")}</span>
+            )}
           </div>
         </Container>
       </section>
 
       <Container className="py-8">
         {!played ? (
-          <EmptyState
-            title="Maç henüz oynanmadı."
-            hint="Kadrolar, kritik anlar ve istatistikler maç başladığında burada görünecek."
-          />
+          preview ? (
+            <MatchPreview preview={preview} home={match.home} away={match.away} />
+          ) : (
+            <EmptyState
+              title="Maç henüz oynanmadı."
+              hint="Maç öncesi bilgiler (form, H2H, oran) yükleniyor…"
+            />
+          )
         ) : (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
             <div className="space-y-8 lg:col-span-3">
+              {summary?.recap && (
+                <section>
+                  <h2 className="mb-3 text-lg font-bold text-white">
+                    Maç Anlatısı
+                  </h2>
+                  <Card className="p-4">
+                    <p className="mb-2 text-sm font-semibold text-white">
+                      {summary.recap.headline}
+                    </p>
+                    <p className="text-sm leading-relaxed text-slate-300">
+                      {summary.recap.text.slice(0, 900)}
+                      {summary.recap.text.length > 900 ? "…" : ""}
+                    </p>
+                    <p className="mt-2 text-[11px] text-slate-500">
+                      Kaynak: ESPN (İngilizce)
+                    </p>
+                  </Card>
+                </section>
+              )}
+
               <section>
                 <h2 className="mb-3 text-lg font-bold text-white">Kritik Anlar</h2>
                 <Card className="p-4">
