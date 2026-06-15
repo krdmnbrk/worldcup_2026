@@ -65,7 +65,7 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
   const { data: match, updatedAt, error } = useEspnPoll<Match>(
     // null = güncelleme yok → son iyi veri korunur, tazelik göstergesi dürüst kalır
     () => browserMatch(id, initialMatch.date),
-    30000,
+    20000,
     initialMatch,
     initialMatch.status !== "post",
     true, // canlı dakika anchor'ı için hemen taze çek

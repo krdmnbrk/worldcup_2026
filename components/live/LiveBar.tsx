@@ -13,7 +13,7 @@ import type { Match } from "@/lib/domain/types";
 export function LiveBar() {
   const { data, updatedAt } = useEspnPoll<Match[]>(
     browserLiveToday,
-    45000,
+    30000,
     [],
     true,
     true,

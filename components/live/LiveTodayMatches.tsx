@@ -12,7 +12,7 @@ import type { Match } from "@/lib/domain/types";
 export function LiveTodayMatches({ initial }: { initial: Match[] }) {
   const { data, updatedAt, error } = useEspnPoll(
     browserAllMatches,
-    60000,
+    45000,
     initial,
     true,
     true,

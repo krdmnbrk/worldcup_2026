@@ -3,10 +3,11 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [master, main]
-  # Statik içeriği periyodik tazele (canlı veriyi tarayıcı zaten dakikada bir çeker;
-  # bu yeniden derleme yeni maç/oyuncu sayfalarını ve önbelleğe alınmış görünümleri günceller).
+  # Statik içeriği olabildiğince sık tazele (GitHub Actions zamanlamasında en kısa
+  # aralık 5 dakikadır). Canlı skor zaten tarayıcıda daha sık çekilir; bu yeniden
+  # derleme yeni maç/oyuncu sayfalarını ve build-time snapshot'ları günceller.
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -26,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       # Kalite kapısı: kırık kod deploy olmasın (lint → tip → test → derleme).

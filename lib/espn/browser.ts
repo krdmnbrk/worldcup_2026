@@ -66,14 +66,15 @@ export async function browserLiveToday(): Promise<Match[] | null> {
   }
 }
 
-export async function browserStandings(): Promise<GroupStanding[]> {
+// Hata/boş → null (son iyi veriyi koru); geçici ESPN hatası grup tablolarını boşaltmaz.
+export async function browserStandings(): Promise<GroupStanding[] | null> {
   try {
     const g = normalizeStandings(await getJson(endpoints.standings()));
     if (g.length) return g;
   } catch {
     /* yoksay */
   }
-  return [];
+  return null;
 }
 
 export async function browserMatch(

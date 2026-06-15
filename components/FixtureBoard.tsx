@@ -20,7 +20,7 @@ const STATUS_TABS: { key: StatusFilter; label: string }[] = [
 export function FixtureBoard({ matches }: { matches: Match[] }) {
   const { data: live, updatedAt, error } = useEspnPoll(
     browserAllMatches,
-    60000,
+    45000,
     matches,
     true,
     true,
