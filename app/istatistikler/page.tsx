@@ -13,12 +13,18 @@ import {
 } from "@/components/StatLeaderboard";
 import { BarChartCard } from "@/components/StatChart";
 import { MatchCard } from "@/components/MatchCard";
+import { TeamFlag } from "@/components/TeamFlag";
+import Link from "next/link";
 import { trCountry } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: "İstatistikler" };
 
 export default async function StatsPage() {
   const { data, stale } = await getTournamentStats();
+  // eski snapshot'a karşı savunmacı varsayılanlar
+  const assistLeaders = data.assistLeaders ?? [];
+  const fairPlay = data.fairPlay ?? [];
+  const goalIntervals = data.goalIntervals ?? [];
 
   const scorerChart = data.topScorers
     .slice(0, 8)
@@ -26,6 +32,9 @@ export default async function StatsPage() {
   const teamChart = data.teamGoals
     .slice(0, 8)
     .map((t) => ({ label: trCountry(t.teamName), value: t.value }));
+  const assistChart = assistLeaders
+    .slice(0, 8)
+    .map((s) => ({ label: s.name.split(/\s+/).slice(-1)[0], value: s.value }));
 
   return (
     <>
@@ -59,6 +68,25 @@ export default async function StatsPage() {
             {scorerChart.length > 0 && (
               <Card className="mt-3 p-3">
                 <BarChartCard data={scorerChart} multicolor />
+              </Card>
+            )}
+          </section>
+
+          <section>
+            <SectionTitle
+              title="Asist Krallığı"
+              subtitle="En çok asist yapan oyuncular"
+            />
+            <Card className="p-3">
+              <StatLeaderboard
+                entries={scorerEntries(assistLeaders)}
+                kind="player"
+                emptyText="Henüz asist kaydı yok."
+              />
+            </Card>
+            {assistChart.length > 0 && (
+              <Card className="mt-3 p-3">
+                <BarChartCard data={assistChart} color="#38bdf8" />
               </Card>
             )}
           </section>
@@ -120,6 +148,73 @@ export default async function StatsPage() {
             )}
           </section>
         </div>
+
+        {goalIntervals.some((g) => g.value > 0) && (
+          <section className="mt-10">
+            <SectionTitle
+              title="Gol Dakika Dağılımı"
+              subtitle="Goller hangi dakikalarda atıldı"
+            />
+            <Card className="p-3">
+              <BarChartCard data={goalIntervals} color="#f59e0b" />
+            </Card>
+          </section>
+        )}
+
+        {fairPlay.length > 0 && (
+          <section className="mt-10">
+            <SectionTitle
+              title="Disiplin / Fair-Play"
+              subtitle="Takım başına kart · ceza puanı = sarı×1 + kırmızı×3"
+            />
+            <Card className="overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[11px] uppercase tracking-wide text-slate-500">
+                    <th className="px-3 py-2 text-left font-medium">Takım</th>
+                    <th className="w-14 py-2 text-center font-medium">🟨</th>
+                    <th className="w-14 py-2 text-center font-medium">🟥</th>
+                    <th className="w-16 py-2 text-center font-bold text-slate-300">
+                      Puan
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fairPlay.map((f) => (
+                    <tr
+                      key={f.teamId}
+                      className="border-t border-white/5 hover:bg-white/[0.04]"
+                    >
+                      <td className="px-3 py-2">
+                        <Link
+                          href={`/takimlar/${f.teamId}`}
+                          className="flex items-center gap-2"
+                        >
+                          <TeamFlag
+                            abbr={f.teamAbbr}
+                            logo={f.logo}
+                            name={f.teamName}
+                            size={22}
+                          />
+                          <span className="truncate font-medium text-white">
+                            {trCountry(f.teamName)}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="py-2 text-center text-amber-300">
+                        {f.yellow}
+                      </td>
+                      <td className="py-2 text-center text-red-300">{f.red}</td>
+                      <td className="py-2 text-center font-bold text-white">
+                        {f.points}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
+          </section>
+        )}
       </Container>
     </>
   );

@@ -205,10 +205,23 @@ export interface TeamGoalCount {
   value: number;
 }
 
+export interface FairPlayRow {
+  teamId: string;
+  teamName: string;
+  teamAbbr: string;
+  logo: string;
+  yellow: number;
+  red: number;
+  points: number; // ceza puanı (düşük = daha temiz): sarı×1 + kırmızı×3
+}
+
 export interface TournamentStats {
   topScorers: StatLeader[];
+  assistLeaders: StatLeader[];
   teamGoals: TeamGoalCount[];
   topCarded: StatLeader[];
+  fairPlay: FairPlayRow[];
+  goalIntervals: { label: string; value: number }[];
   yellowCards: number;
   redCards: number;
   totalGoals: number;

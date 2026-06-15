@@ -24,6 +24,7 @@ import type {
   TournamentStats,
   StatLeader,
   TeamGoalCount,
+  FairPlayRow,
   MatchEvent,
   StandingRow,
   Bracket,
@@ -352,6 +353,24 @@ function teamLookup(matches: Match[]) {
   return map;
 }
 
+// Eşzamanlılık sınırlı paralel işlem (ESPN'i yormamak için)
+async function mapPool<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let i = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (i < items.length) {
+      const idx = i++;
+      out[idx] = await fn(items[idx]);
+    }
+  });
+  await Promise.all(workers);
+  return out;
+}
+
 export function getTournamentStats(): Promise<DataResult<TournamentStats>> {
   return withSnapshot(
     "stats",
@@ -370,12 +389,26 @@ export function getTournamentStats(): Promise<DataResult<TournamentStats>> {
       // gol krallığı (penaltı dahil, kendi kalesine hariç) — playerId bazlı
       const scorerMap = new Map<string, StatLeader>();
       const carded = new Map<string, StatLeader>();
+      const teamCards = new Map<string, { yellow: number; red: number }>();
+      const goalBuckets = [0, 0, 0, 0, 0, 0];
       let yellowCards = 0,
         redCards = 0;
 
       for (const m of matches) {
         for (const e of m.events) {
           const t = e.teamId ? teams.get(e.teamId) : undefined;
+          if (e.type === "goal" || e.type === "penalty" || e.type === "own-goal") {
+            const mins = Math.floor(e.minuteValue || 0);
+            const b =
+              mins <= 15 ? 0 : mins <= 30 ? 1 : mins <= 45 ? 2 : mins <= 60 ? 3 : mins <= 75 ? 4 : 5;
+            goalBuckets[b]++;
+          }
+          if ((e.type === "yellow" || e.type === "red") && e.teamId) {
+            const tc = teamCards.get(e.teamId) || { yellow: 0, red: 0 };
+            if (e.type === "yellow") tc.yellow++;
+            else tc.red++;
+            teamCards.set(e.teamId, tc);
+          }
           if ((e.type === "goal" || e.type === "penalty") && e.player) {
             const key = e.playerId || `${e.player}-${e.teamId}`;
             const cur = scorerMap.get(key) || {
@@ -468,10 +501,74 @@ export function getTournamentStats(): Promise<DataResult<TournamentStats>> {
         .sort((a, b) => b.value - a.value)
         .slice(0, 8);
 
+      // asist krallığı — oynanan maç summary'lerinden goalAssists topla
+      const assistMap = new Map<string, StatLeader>();
+      const summaries = await mapPool(played, 6, (m) =>
+        espnFetch<unknown>(endpoints.summary(m.id), {
+          revalidate: 3600,
+          tags: ["summary"],
+        })
+          .then(normalizeSummary)
+          .catch(() => null),
+      );
+      for (const s of summaries) {
+        if (!s) continue;
+        for (const lu of s.lineups) {
+          const t = teams.get(lu.teamId);
+          for (const p of [...lu.starters, ...lu.subs]) {
+            const a = p.stats?.assists ?? 0;
+            if (a > 0 && p.athleteId) {
+              const cur = assistMap.get(p.athleteId) || {
+                id: p.athleteId,
+                name: p.name,
+                teamId: lu.teamId,
+                teamAbbr: t?.abbr,
+                teamName: t?.name,
+                headshot: indexMap.get(p.athleteId)?.headshot ?? p.headshot,
+                value: 0,
+              };
+              cur.value += a;
+              assistMap.set(p.athleteId, cur);
+            }
+          }
+        }
+      }
+      const assistLeaders = Array.from(assistMap.values())
+        .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
+        .slice(0, 12);
+
+      const fairPlay: FairPlayRow[] = Array.from(teamCards.entries())
+        .map(([id, c]) => {
+          const t = teams.get(id);
+          return {
+            teamId: id,
+            teamName: t?.name || "—",
+            teamAbbr: t?.abbr || "",
+            logo: t?.logo || "",
+            yellow: c.yellow,
+            red: c.red,
+            points: c.yellow * 1 + c.red * 3,
+          };
+        })
+        .sort((a, b) => b.points - a.points || b.red - a.red)
+        .slice(0, 16);
+
+      const goalIntervals = [
+        "1-15",
+        "16-30",
+        "31-45",
+        "46-60",
+        "61-75",
+        "76-90+",
+      ].map((label, i) => ({ label, value: goalBuckets[i] }));
+
       return {
         topScorers,
+        assistLeaders,
         teamGoals,
         topCarded,
+        fairPlay,
+        goalIntervals,
         yellowCards,
         redCards,
         totalGoals,
