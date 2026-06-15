@@ -5,6 +5,7 @@ import {
   shade,
   luminance,
   WALLPAPER_STYLES,
+  WALLPAPER_SIZES,
 } from "@/lib/wallpaper";
 
 describe("renk yardımcıları", () => {
@@ -81,5 +82,48 @@ describe("buildWallpaperSVG", () => {
     });
     expect(svg).toContain("A&lt;b&gt;&amp;&quot;x");
     expect(svg).not.toContain("<b>");
+  });
+
+  it("özel boyut viewBox/width/height'a yansır", () => {
+    for (const s of WALLPAPER_SIZES) {
+      const svg = buildWallpaperSVG({
+        name: "Test",
+        abbr: "TST",
+        palette,
+        style: "gradyan",
+        width: s.w,
+        height: s.h,
+      });
+      expect(svg).toContain(`width="${s.w}"`);
+      expect(svg).toContain(`height="${s.h}"`);
+      expect(svg).toContain(`viewBox="0 0 ${s.w} ${s.h}"`);
+    }
+  });
+
+  it("oyuncu stili: foto verilince <image> gömülür + forma no", () => {
+    const photo = "data:image/webp;base64,AAAA";
+    const svg = buildWallpaperSVG({
+      name: "Arda Güler",
+      abbr: "TUR",
+      palette,
+      style: "oyuncu",
+      photo,
+      jersey: "10",
+    });
+    expect(svg).toContain("<image");
+    expect(svg).toContain(photo);
+    expect(svg).toContain("Arda Güler");
+    expect(svg).toContain("#10");
+  });
+
+  it("oyuncu stili: foto yoksa gradyana düşer (geçerli svg, image yok)", () => {
+    const svg = buildWallpaperSVG({
+      name: "X",
+      abbr: "TUR",
+      palette,
+      style: "oyuncu",
+    });
+    expect(svg.startsWith("<svg")).toBe(true);
+    expect(svg).not.toContain("<image");
   });
 });

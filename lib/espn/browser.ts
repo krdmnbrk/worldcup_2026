@@ -10,6 +10,7 @@ import {
   normalizeFormation,
   normalizeAthlete,
   normalizePreview,
+  normalizeRoster,
   type NormalizedSummary,
 } from "@/lib/espn/normalize";
 import type {
@@ -17,6 +18,7 @@ import type {
   GroupStanding,
   Player,
   MatchPreview,
+  Team,
 } from "@/lib/domain/types";
 
 async function getJson(url: string): Promise<unknown> {
@@ -124,6 +126,17 @@ export async function browserPreview(id: string): Promise<MatchPreview | null> {
 export async function browserAthlete(id: string): Promise<Player | null> {
   try {
     return normalizeAthlete(await getJson(endpoints.athlete(id)));
+  } catch {
+    return null;
+  }
+}
+
+export async function browserRoster(
+  teamId: string,
+  team: Team,
+): Promise<Player[] | null> {
+  try {
+    return normalizeRoster(await getJson(endpoints.roster(teamId)), team);
   } catch {
     return null;
   }

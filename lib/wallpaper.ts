@@ -8,13 +8,35 @@ export interface Palette {
   accent: string;
 }
 
-export type WallpaperStyle = "gradyan" | "saha" | "cizgili" | "yildiz";
+export type WallpaperStyle =
+  | "gradyan"
+  | "saha"
+  | "cizgili"
+  | "yildiz"
+  | "dalga"
+  | "halo"
+  | "oyuncu";
 
 export const WALLPAPER_STYLES: { key: WallpaperStyle; label: string }[] = [
   { key: "gradyan", label: "Gradyan" },
-  { key: "saha", label: "Saha" },
   { key: "cizgili", label: "Çizgili" },
+  { key: "saha", label: "Saha" },
   { key: "yildiz", label: "Yıldız" },
+  { key: "dalga", label: "Dalga" },
+  { key: "halo", label: "Halo" },
+  { key: "oyuncu", label: "Oyuncu" },
+];
+
+// Hedef cihaza göre çıktı boyutları (px).
+export const WALLPAPER_SIZES: {
+  key: string;
+  label: string;
+  w: number;
+  h: number;
+}[] = [
+  { key: "telefon", label: "Telefon", w: 1080, h: 2340 },
+  { key: "tablet", label: "Tablet", w: 1640, h: 2360 },
+  { key: "masaustu", label: "Masaüstü", w: 2560, h: 1440 },
 ];
 
 // ---- renk yardımcıları ----
@@ -125,12 +147,14 @@ function esc(s: string): string {
 }
 
 export interface WallpaperOpts {
-  name: string; // Türkçe takım adı
+  name: string; // takım adı (oyuncu stilinde: oyuncu adı)
   abbr: string;
   palette: Palette;
   style: WallpaperStyle;
   width?: number;
   height?: number;
+  photo?: string; // oyuncu stili için data: URI (yerel webp → base64)
+  jersey?: string; // oyuncu forma numarası
 }
 
 // Stile göre arka plan katmanı (crest + metin ortak olarak üstüne biner).
@@ -140,6 +164,7 @@ function background(
   H: number,
   p: Palette,
 ): string {
+  const S = Math.min(W, H);
   switch (style) {
     case "saha": {
       // Takım renginde "biçilmiş çim" şeritleri + saha çizgileri.
@@ -189,6 +214,39 @@ function background(
         </radialGradient>
         <rect width="${W}" height="${H}" fill="url(#glow)"/>${stars.join("")}`;
     }
+    case "dalga": {
+      // Katmanlı yumuşak dalgalar (takım renk tonları).
+      const cols = [
+        shade(p.primary, 0.08),
+        p.primary,
+        shade(p.primary, -0.28),
+        p.secondary,
+      ];
+      const amp = S * 0.06;
+      const waves = cols
+        .map((col, i) => {
+          const y = H * (0.34 + i * 0.16);
+          return `<path d="M0 ${y} C ${W * 0.32} ${y - amp}, ${W * 0.68} ${y + amp}, ${W} ${y} L ${W} ${H} L 0 ${H} Z" fill="${col}"/>`;
+        })
+        .join("");
+      return `<rect width="${W}" height="${H}" fill="${shade(p.primary, 0.14)}"/>${waves}`;
+    }
+    case "halo": {
+      // Eş merkezli halkalar (amblem arkasında ışıma).
+      const cx = W / 2;
+      const cy = H * 0.4;
+      const rings = [];
+      for (let i = 9; i >= 1; i--) {
+        rings.push(
+          `<circle cx="${cx}" cy="${cy}" r="${(S * 0.075 * i).toFixed(0)}" fill="none" stroke="${p.accent}" stroke-width="${Math.max(2, S * 0.0035).toFixed(1)}" opacity="${(0.05 + i * 0.012).toFixed(3)}"/>`,
+        );
+      }
+      return `<linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="${shade(p.primary, -0.08)}"/>
+          <stop offset="1" stop-color="${shade(p.primary, -0.62)}"/>
+        </linearGradient>
+        <rect width="${W}" height="${H}" fill="url(#hg)"/>${rings.join("")}`;
+    }
     case "gradyan":
     default: {
       const ink = luminance(p.primary) > 0.6 ? "#0b1018" : "#ffffff";
@@ -202,29 +260,90 @@ function background(
   }
 }
 
+// Oyuncu fotoğraflı tasarım — yerel webp data:URI olarak gömülür (canvas tainted
+// olmaz). name = oyuncu adı, jersey = forma no.
+function playerWallpaper(
+  W: number,
+  H: number,
+  S: number,
+  p: Palette,
+  name: string,
+  abbr: string,
+  photo: string,
+  jersey?: string,
+): string {
+  const cx = W / 2;
+  const cy = Math.round(H * 0.36);
+  const R = Math.round(S * 0.27);
+  const ring = Math.max(5, Math.round(S * 0.014));
+  const j = jersey ? esc(jersey) : "";
+  const barW = Math.round(Math.min(W * 0.9, R * 3.4));
+  const barH = Math.round(S * 0.17);
+  const barY = cy + R + Math.round(S * 0.06);
+  const nameSize = Math.round(S * 0.076);
+  const labelSize = Math.round(S * 0.05);
+  const footSize = Math.round(S * 0.032);
+  const ink = luminance(p.primary) > 0.6 ? "#0b1018" : "#ffffff";
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${shade(p.primary, 0.05)}"/>
+      <stop offset="0.6" stop-color="${shade(p.primary, -0.35)}"/>
+      <stop offset="1" stop-color="${shade(p.primary, -0.65)}"/>
+    </linearGradient>
+    <clipPath id="pc"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#pg)"/>
+  ${j ? `<text x="${cx}" y="${(H * 0.66).toFixed(0)}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="${Math.round(S * 0.72)}" fill="${ink}" opacity="0.08">${j}</text>` : ""}
+  <circle cx="${cx}" cy="${cy}" r="${R + ring}" fill="${p.accent}"/>
+  <circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(8,12,20,0.55)"/>
+  <image href="${photo}" x="${cx - R}" y="${cy - R}" width="${2 * R}" height="${2 * R}" preserveAspectRatio="xMidYMid slice" clip-path="url(#pc)"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <rect x="${cx - barW / 2}" y="${barY}" width="${barW}" height="${barH}" rx="${Math.round(barH * 0.16)}" fill="rgba(8,12,20,0.55)"/>
+    <text x="${cx}" y="${(barY + barH * 0.38).toFixed(0)}" text-anchor="middle" font-weight="800" font-size="${labelSize}" fill="${p.accent}" letter-spacing="${Math.round(labelSize * 0.06)}">${j ? `#${j} · ${abbr}` : abbr}</text>
+    <text x="${cx}" y="${(barY + barH * 0.72).toFixed(0)}" text-anchor="middle" font-weight="800" font-size="${nameSize}" fill="#ffffff">${name}</text>
+    <text x="${cx}" y="${(H - S * 0.05).toFixed(0)}" text-anchor="middle" font-weight="600" font-size="${footSize}" fill="#ffffff" opacity="0.7">FIFA Dünya Kupası 2026</text>
+  </g>
+</svg>`;
+}
+
 export function buildWallpaperSVG(o: WallpaperOpts): string {
   const W = o.width ?? 1080;
   const H = o.height ?? 2340;
+  const S = Math.min(W, H);
   const p = o.palette;
-  const abbr = esc((o.abbr || "WC").toUpperCase().slice(0, 3));
   const name = esc(o.name || "Takım");
-  const cx = W / 2;
-  const crestY = 940;
-  const R = 250;
-  const abbrSize = abbr.length <= 2 ? 250 : 210;
-  // Metin her zaman koyu yarı saydam bant + beyaz yazı → her renkte okunur.
-  const barY = 1290;
-  const barH = 300;
+  const abbr = esc((o.abbr || "WC").toUpperCase().slice(0, 3));
 
+  if (o.style === "oyuncu" && o.photo) {
+    return playerWallpaper(W, H, S, p, name, abbr, o.photo, o.jersey);
+  }
+  // Fotoğraf yoksa oyuncu stili gradyana düşer.
+  const style: WallpaperStyle = o.style === "oyuncu" ? "gradyan" : o.style;
+
+  const cx = W / 2;
+  const crestCy = Math.round(H * 0.4);
+  const R = Math.round(S * 0.22);
+  const abbrSize = Math.round(R * (abbr.length <= 2 ? 0.92 : 0.78));
+  const barW = Math.round(Math.min(W * 0.86, R * 3.7));
+  const barH = Math.round(S * 0.13);
+  const barY = crestCy + R + Math.round(S * 0.05);
+  const nameSize = Math.round(S * 0.085);
+  const subSize = Math.round(S * 0.04);
+  const footSize = Math.round(S * 0.033);
+  const ring = Math.max(4, Math.round(S * 0.011));
+
+  // Metin her zaman koyu yarı saydam bant + beyaz yazı → her renkte okunur.
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  ${background(o.style, W, H, p)}
+  ${background(style, W, H, p)}
   <g font-family="Arial, Helvetica, sans-serif">
-    <circle cx="${cx}" cy="${crestY}" r="${R}" fill="rgba(8,12,20,0.42)" stroke="${p.accent}" stroke-width="12"/>
-    <text x="${cx}" y="${crestY + abbrSize * 0.34}" text-anchor="middle" font-weight="800" font-size="${abbrSize}" fill="#ffffff" letter-spacing="4">${abbr}</text>
-    <rect x="${cx - 470}" y="${barY}" width="940" height="${barH}" rx="44" fill="rgba(8,12,20,0.5)"/>
-    <text x="${cx}" y="${barY + 130}" text-anchor="middle" font-weight="800" font-size="96" fill="#ffffff">${name}</text>
-    <text x="${cx}" y="${barY + 220}" text-anchor="middle" font-weight="700" font-size="46" fill="${p.accent}" letter-spacing="8">DÜNYA KUPASI 2026</text>
-    <text x="${cx}" y="${H - 150}" text-anchor="middle" font-weight="600" font-size="38" fill="#ffffff" opacity="0.7">FIFA Dünya Kupası · 11 Haz – 19 Tem · Kuzey Amerika</text>
+    <circle cx="${cx}" cy="${crestCy}" r="${R}" fill="rgba(8,12,20,0.42)" stroke="${p.accent}" stroke-width="${ring}"/>
+    <text x="${cx}" y="${(crestCy + abbrSize * 0.34).toFixed(0)}" text-anchor="middle" font-weight="800" font-size="${abbrSize}" fill="#ffffff" letter-spacing="${Math.round(R * 0.02)}">${abbr}</text>
+    <rect x="${cx - barW / 2}" y="${barY}" width="${barW}" height="${barH}" rx="${Math.round(barH * 0.16)}" fill="rgba(8,12,20,0.5)"/>
+    <text x="${cx}" y="${(barY + barH * 0.45).toFixed(0)}" text-anchor="middle" font-weight="800" font-size="${nameSize}" fill="#ffffff">${name}</text>
+    <text x="${cx}" y="${(barY + barH * 0.74).toFixed(0)}" text-anchor="middle" font-weight="700" font-size="${subSize}" fill="${p.accent}" letter-spacing="${Math.round(subSize * 0.18)}">DÜNYA KUPASI 2026</text>
+    <text x="${cx}" y="${(H - S * 0.05).toFixed(0)}" text-anchor="middle" font-weight="600" font-size="${footSize}" fill="#ffffff" opacity="0.7">FIFA Dünya Kupası · 11 Haz – 19 Tem · Kuzey Amerika</text>
   </g>
 </svg>`;
 }
