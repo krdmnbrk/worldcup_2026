@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // ESPN ham JSON → temiz domain tipleri. TÜM ESPN tuhaflıkları burada izole edilir.
+// Giriş `unknown`; gezinme lib/espn/json.ts güvenli erişimcileriyle (obj/arr/str) yapılır.
 
 import type {
   Match,
@@ -90,14 +90,15 @@ function groupFromNote(note?: string): string | undefined {
   return m ? m[1].toUpperCase() : undefined;
 }
 
-function eventType(d: any): EventType {
-  const text = String(d?.type?.text || "").toLowerCase();
-  if (d?.redCard || text.includes("red")) return "red";
-  if (d?.yellowCard || text.includes("yellow")) return "yellow";
-  if (d?.ownGoal || text.includes("own goal")) return "own-goal";
-  if (d?.penaltyKick && (d?.scoringPlay || d?.scoreValue > 0)) return "penalty";
-  if (d?.scoringPlay || d?.scoreValue > 0 || text.includes("goal")) return "goal";
-  if (text.includes("substitution") || d?.substitution) return "sub";
+function eventType(d: unknown): EventType {
+  const o = obj(d);
+  const text = (str(obj(o.type).text) ?? "").toLowerCase();
+  if (o.redCard || text.includes("red")) return "red";
+  if (o.yellowCard || text.includes("yellow")) return "yellow";
+  if (o.ownGoal || text.includes("own goal")) return "own-goal";
+  if (o.penaltyKick && (o.scoringPlay || num(o.scoreValue) > 0)) return "penalty";
+  if (o.scoringPlay || num(o.scoreValue) > 0 || text.includes("goal")) return "goal";
+  if (text.includes("substitution") || o.substitution) return "sub";
   if (text.includes("var") || text.includes("video")) return "var";
   return "other";
 }
@@ -112,104 +113,110 @@ const KEEP_EVENTS: EventType[] = [
   "var",
 ];
 
-function normalizeEvent(d: any): MatchEvent | null {
+function normalizeEvent(d: unknown): MatchEvent | null {
+  const o = obj(d);
   const type = eventType(d);
   if (!KEEP_EVENTS.includes(type)) return null;
-  const minute = d?.clock?.displayValue || "";
-  const athlete = Array.isArray(d?.athletesInvolved)
-    ? d.athletesInvolved[0]
-    : undefined;
+  const minute = str(obj(o.clock).displayValue) || "";
+  const involved = arr(o.athletesInvolved);
+  const a0 = obj(involved[0]);
   return {
     minute,
     minuteValue: parseMinute(minute),
     type,
-    teamId: String(d?.team?.id ?? ""),
-    player: athlete?.displayName,
-    playerId: athlete?.id != null ? String(athlete.id) : undefined,
-    assist: Array.isArray(d?.athletesInvolved)
-      ? d.athletesInvolved[1]?.displayName
-      : undefined,
-    detailText: d?.type?.text,
+    teamId: str(obj(o.team).id) ?? "",
+    player: str(a0.displayName),
+    playerId: a0.id != null ? str(a0.id) : undefined,
+    assist: str(obj(involved[1]).displayName),
+    detailText: str(obj(o.type).text),
   };
 }
 
-function buildTeamInMatch(c: any, groupId?: string): TeamInMatch {
-  const t = c?.team ?? {};
-  const abbr = String(t.abbreviation ?? "");
+function buildTeamInMatch(c: unknown, groupId?: string): TeamInMatch {
+  const co = obj(c);
+  const t = obj(co.team);
+  const abbr = str(t.abbreviation) ?? "";
+  const color = str(t.color);
   return {
-    id: String(t.id ?? ""),
-    name: String(t.displayName ?? t.name ?? "—"),
+    id: str(t.id) ?? "",
+    name: str(t.displayName) ?? str(t.name) ?? "—",
     abbr,
-    logo: t.logo || (abbr ? teamLogoUrl(abbr) : ""),
-    colorHex: t.color ? `#${String(t.color).replace(/^#/, "")}` : undefined,
+    logo: str(t.logo) || (abbr ? teamLogoUrl(abbr) : ""),
+    colorHex: color ? `#${color.replace(/^#/, "")}` : undefined,
     groupId,
-    homeAway: c?.homeAway === "away" ? "away" : "home",
-    score: c?.score != null && c?.score !== "" ? num(c.score) : undefined,
+    homeAway: co.homeAway === "away" ? "away" : "home",
+    score: co.score != null && co.score !== "" ? num(co.score) : undefined,
     shootoutScore:
-      c?.shootoutScore != null && c?.shootoutScore !== ""
-        ? num(c.shootoutScore)
+      co.shootoutScore != null && co.shootoutScore !== ""
+        ? num(co.shootoutScore)
         : undefined,
-    winner: !!c?.winner,
-    form: c?.form,
+    winner: !!co.winner,
+    form: str(co.form),
   };
 }
 
-export function normalizeScoreboard(json: any): Match[] {
-  const events: any[] = json?.events ?? [];
-  const seasonType = json?.leagues?.[0]?.season?.type;
+export function normalizeScoreboard(json: unknown): Match[] {
+  const root = obj(json);
+  const events = arr(root.events);
+  const seasonType = obj(obj(arr(root.leagues)[0]).season).type;
+  const st2 = obj(seasonType);
   const out: Match[] = [];
 
-  for (const ev of events) {
-    const comp = ev?.competitions?.[0];
-    if (!comp) continue;
-    const group = groupFromNote(comp?.altGameNote);
-    const competitors: any[] = comp?.competitors ?? [];
+  for (const evRaw of events) {
+    const ev = obj(evRaw);
+    const competitions = arr(ev.competitions);
+    if (!competitions.length) continue;
+    const comp = obj(competitions[0]);
+    const group = groupFromNote(str(comp.altGameNote));
+    const competitors = arr(comp.competitors);
     const home =
-      competitors.find((c) => c?.homeAway === "home") ?? competitors[0];
+      competitors.find((c) => obj(c).homeAway === "home") ?? competitors[0];
     const away =
-      competitors.find((c) => c?.homeAway === "away") ?? competitors[1];
+      competitors.find((c) => obj(c).homeAway === "away") ?? competitors[1];
     if (!home || !away) continue;
 
     const stage = stageFromSeason(
-      ev?.season?.slug ?? seasonType?.abbreviation,
-      seasonType?.name,
+      str(obj(ev.season).slug) ?? str(st2.abbreviation),
+      str(st2.name),
     );
-    const st = comp?.status?.type ?? {};
+    const status = obj(comp.status);
+    const st = obj(status.type);
     const state: "pre" | "in" | "post" =
       st.state === "in" ? "in" : st.state === "post" ? "post" : "pre";
 
-    const venue = comp?.venue ?? {};
-    const addr = venue?.address ?? {};
+    const venue = obj(comp.venue);
+    const addr = obj(venue.address);
 
-    const rawEvents: MatchEvent[] = (comp?.details ?? [])
+    const rawEvents: MatchEvent[] = arr(comp.details)
       .map(normalizeEvent)
-      .filter((e: MatchEvent | null): e is MatchEvent => e !== null)
-      .sort((a: MatchEvent, b: MatchEvent) => a.minuteValue - b.minuteValue);
+      .filter((e): e is MatchEvent => e !== null)
+      .sort((a, b) => a.minuteValue - b.minuteValue);
 
     out.push({
-      id: String(ev.id),
-      date: ev.date,
+      id: str(ev.id) ?? "",
+      date: str(ev.date) ?? "",
       status: state,
-      statusDetail: st.shortDetail || st.detail || st.description,
-      clock: comp?.status?.displayClock,
-      statusName: st.name,
+      statusDetail:
+        str(st.shortDetail) || str(st.detail) || str(st.description),
+      clock: str(status.displayClock),
+      statusName: str(st.name),
       completed: !!st.completed,
       stage,
       roundLabel:
         stage === "group" && group ? `Grup ${group}` : stageLabel(stage),
       group,
       venue: {
-        name: venue?.fullName,
-        city: addr?.city ?? venue?.city,
-        country: addr?.country ?? venue?.country,
+        name: str(venue.fullName),
+        city: str(addr.city) ?? str(venue.city),
+        country: str(addr.country) ?? str(venue.country),
       },
       home: buildTeamInMatch(home, group),
       away: buildTeamInMatch(away, group),
       events: rawEvents,
-      attendance: comp?.attendance ? num(comp.attendance) : undefined,
-      broadcasts: (comp?.broadcasts ?? [])
-        .flatMap((b: any) => b?.names ?? [])
-        .filter(Boolean),
+      attendance: comp.attendance ? num(comp.attendance) : undefined,
+      broadcasts: arr(comp.broadcasts)
+        .flatMap((b) => arr(obj(b).names))
+        .filter((n): n is string => typeof n === "string" && n.length > 0),
     });
   }
   return out;
@@ -236,11 +243,11 @@ function stripHtml(html?: string): string {
     .trim();
 }
 
-function playerStatVal(stats: any[], name: string): number {
-  const s = (stats ?? []).find((x) => x?.name === name);
-  return s ? num(s.value ?? s.displayValue) : 0;
+function playerStatVal(stats: unknown[], name: string): number {
+  const s = stats.find((x) => obj(x).name === name);
+  return s ? num(obj(s).value ?? obj(s).displayValue) : 0;
 }
-function normalizePlayerMatchStat(stats: any): PlayerMatchStat | undefined {
+function normalizePlayerMatchStat(stats: unknown): PlayerMatchStat | undefined {
   if (!Array.isArray(stats) || !stats.length) return undefined;
   return {
     goals: playerStatVal(stats, "totalGoals"),
@@ -254,49 +261,62 @@ function normalizePlayerMatchStat(stats: any): PlayerMatchStat | undefined {
   };
 }
 
-function normalizeLineupPlayer(p: any): LineupPlayer {
-  const a = p?.athlete ?? {};
+function normalizeLineupPlayer(p: unknown): LineupPlayer {
+  const po = obj(p);
+  const a = obj(po.athlete);
+  const position = obj(po.position);
   return {
-    athleteId: String(a.id ?? ""),
-    name: String(a.displayName ?? a.fullName ?? "—"),
-    jersey: p?.jersey,
-    position: p?.position?.abbreviation || p?.position?.name,
-    starter: !!p?.starter,
-    formationPlace: p?.formationPlace,
-    headshot: a?.headshot?.href,
-    subbedIn: !!p?.subbedIn,
-    subbedOut: !!p?.subbedOut,
-    subbedForJersey: p?.subbedOutFor?.jersey,
-    captain: !!p?.captain,
-    stats: normalizePlayerMatchStat(p?.stats),
+    athleteId: str(a.id) ?? "",
+    name: str(a.displayName) ?? str(a.fullName) ?? "—",
+    jersey: str(po.jersey),
+    position: str(position.abbreviation) || str(position.name),
+    starter: !!po.starter,
+    formationPlace: str(po.formationPlace),
+    headshot: str(obj(a.headshot).href),
+    subbedIn: !!po.subbedIn,
+    subbedOut: !!po.subbedOut,
+    subbedForJersey: str(obj(po.subbedOutFor).jersey),
+    captain: !!po.captain,
+    stats: normalizePlayerMatchStat(po.stats),
   };
 }
 
-function indexStats(stats: any[]): Record<string, { value: string; label?: string }> {
+function indexStats(
+  stats: unknown[],
+): Record<string, { value: string; label?: string }> {
   const out: Record<string, { value: string; label?: string }> = {};
-  for (const s of stats ?? []) {
-    if (s?.name) out[s.name] = { value: String(s.displayValue ?? s.value ?? ""), label: s.label };
+  for (const sRaw of stats) {
+    const s = obj(sRaw);
+    const name = str(s.name);
+    if (name)
+      out[name] = {
+        value: str(s.displayValue) ?? str(s.value) ?? "",
+        label: str(s.label),
+      };
   }
   return out;
 }
 
-export function normalizeSummary(json: any): NormalizedSummary {
-  const rosters: any[] = json?.rosters ?? json?.boxscore?.rosters ?? [];
-  const lineups: TeamLineup[] = rosters.map((r) => {
-    const players: LineupPlayer[] = (r?.roster ?? []).map(normalizeLineupPlayer);
+export function normalizeSummary(json: unknown): NormalizedSummary {
+  const root = obj(json);
+  const rosters =
+    root.rosters != null ? arr(root.rosters) : arr(obj(root.boxscore).rosters);
+  const lineups: TeamLineup[] = rosters.map((rRaw) => {
+    const r = obj(rRaw);
+    const players: LineupPlayer[] = arr(r.roster).map(normalizeLineupPlayer);
     return {
-      teamId: String(r?.team?.id ?? ""),
+      teamId: str(obj(r.team).id) ?? "",
       starters: players.filter((p) => p.starter),
       subs: players.filter((p) => !p.starter),
     };
   });
 
   // takım maç istatistikleri
-  const boxTeams: any[] = json?.boxscore?.teams ?? [];
-  const homeT = boxTeams.find((t) => t?.homeAway === "home") ?? boxTeams[0];
-  const awayT = boxTeams.find((t) => t?.homeAway === "away") ?? boxTeams[1];
-  const homeStats = indexStats(homeT?.statistics ?? []);
-  const awayStats = indexStats(awayT?.statistics ?? []);
+  const boxTeams = arr(obj(root.boxscore).teams);
+  const homeT = boxTeams.find((t) => obj(t).homeAway === "home") ?? boxTeams[0];
+  const awayT = boxTeams.find((t) => obj(t).homeAway === "away") ?? boxTeams[1];
+  const homeStats = indexStats(arr(obj(homeT).statistics));
+  const awayStats = indexStats(arr(obj(awayT).statistics));
 
   const allNames = Array.from(
     new Set([...Object.keys(homeStats), ...Object.keys(awayStats)]),
@@ -330,64 +350,74 @@ export function normalizeSummary(json: any): NormalizedSummary {
     };
   });
 
-  const officials: any[] = json?.gameInfo?.officials ?? [];
+  const gameInfo = obj(root.gameInfo);
+  const officials = arr(gameInfo.officials);
+  const refMatch = officials.find(
+    (o) => obj(obj(o).position).name === "Referee",
+  );
   const referee =
-    officials.find((o) => o?.position?.name === "Referee")?.fullName ||
-    officials[0]?.fullName;
+    str(obj(refMatch).fullName) || str(obj(officials[0]).fullName);
 
-  const article = json?.article;
+  const article = obj(root.article);
+  const headline = str(article.headline);
+  const story = str(article.story);
   const recap =
-    article?.headline && article?.story
-      ? { headline: String(article.headline), text: stripHtml(article.story) }
-      : undefined;
+    headline && story ? { headline, text: stripHtml(story) } : undefined;
 
   return {
     lineups,
     teamStats,
     referee,
-    attendance: json?.gameInfo?.attendance
-      ? num(json.gameInfo.attendance)
-      : undefined,
+    attendance: gameInfo.attendance ? num(gameInfo.attendance) : undefined,
     recap,
   };
 }
 
-export function normalizeFormation(json: any): string | undefined {
-  return json?.formation?.summary || undefined;
+export function normalizeFormation(json: unknown): string | undefined {
+  return str(obj(obj(json).formation).summary) || undefined;
 }
 
 // ---- maç önizleme (pre-maç): form + H2H + bahis oranı ----
-function mapPreviewGame(e: any): PreviewGame {
-  const r = String(e?.gameResult ?? "").toUpperCase();
+function mapPreviewGame(e: unknown): PreviewGame {
+  const o = obj(e);
+  const r = (str(o.gameResult) ?? "").toUpperCase();
+  const opp = o.opponent;
   return {
-    date: e?.gameDate,
+    date: str(o.gameDate),
     result: r === "W" || r === "D" || r === "L" ? (r as "W" | "D" | "L") : undefined,
-    score: e?.score ? String(e.score) : undefined,
+    score: o.score ? str(o.score) : undefined,
     opponent:
-      typeof e?.opponent === "string"
-        ? e.opponent
-        : e?.opponent?.displayName || e?.opponent?.abbreviation || undefined,
-    opponentLogo: e?.opponentLogo || e?.opponent?.logos?.[0]?.href,
-    competition: e?.leagueAbbreviation || e?.leagueName || e?.competitionName,
+      typeof opp === "string"
+        ? opp
+        : str(obj(opp).displayName) || str(obj(opp).abbreviation),
+    opponentLogo:
+      str(o.opponentLogo) || str(obj(arr(obj(opp).logos)[0]).href),
+    competition:
+      str(o.leagueAbbreviation) || str(o.leagueName) || str(o.competitionName),
   };
 }
 
-export function normalizePreview(json: any): MatchPreview {
-  const o = json?.odds?.[0] ?? json?.pickcenter?.[0];
-  const odds = o
+export function normalizePreview(json: unknown): MatchPreview {
+  const root = obj(json);
+  const o = obj(arr(root.odds)[0] ?? arr(root.pickcenter)[0]);
+  const hasOdds = arr(root.odds).length > 0 || arr(root.pickcenter).length > 0;
+  const odds = hasOdds
     ? {
-        provider: o?.provider?.name,
-        detail: o?.details,
-        overUnder: o?.overUnder != null ? String(o.overUnder) : undefined,
+        provider: str(obj(o.provider).name),
+        detail: str(o.details),
+        overUnder: o.overUnder != null ? str(o.overUnder) : undefined,
       }
     : undefined;
 
-  const teamForm: TeamForm[] = (json?.lastFiveGames ?? []).map((t: any) => ({
-    teamId: String(t?.team?.id ?? ""),
-    games: (t?.events ?? []).map(mapPreviewGame),
-  }));
+  const teamForm: TeamForm[] = arr(root.lastFiveGames).map((tRaw) => {
+    const t = obj(tRaw);
+    return {
+      teamId: str(obj(t.team).id) ?? "",
+      games: arr(t.events).map(mapPreviewGame),
+    };
+  });
 
-  const h2h: PreviewGame[] = (json?.headToHeadGames?.[0]?.events ?? []).map(
+  const h2h: PreviewGame[] = arr(obj(arr(root.headToHeadGames)[0]).events).map(
     mapPreviewGame,
   );
 
@@ -538,78 +568,92 @@ export function normalizeTeams(json: unknown): Team[] {
   });
 }
 
-export function normalizeTeam(json: any): {
+export function normalizeTeam(json: unknown): {
   team: Team;
   standingSummary?: string;
   groupId?: string;
 } {
-  const t = json?.team ?? {};
-  const abbr = String(t?.abbreviation ?? "");
+  const root = obj(json);
+  const t = obj(root.team);
+  const abbr = str(t.abbreviation) ?? "";
+  const color = str(t.color);
+  const groups = obj(t.groups);
   return {
     team: {
-      id: String(t?.id ?? ""),
-      name: String(t?.displayName ?? t?.name ?? "—"),
+      id: str(t.id) ?? "",
+      name: str(t.displayName) ?? str(t.name) ?? "—",
       abbr,
-      logo: t?.logos?.[0]?.href || (abbr ? teamLogoUrl(abbr) : ""),
-      colorHex: t?.color ? `#${String(t.color).replace(/^#/, "")}` : undefined,
+      logo: str(obj(arr(t.logos)[0]).href) || (abbr ? teamLogoUrl(abbr) : ""),
+      colorHex: color ? `#${color.replace(/^#/, "")}` : undefined,
     },
-    standingSummary: json?.standingSummary,
-    groupId: t?.groups?.id ? letterFromId(t.groups.id) : undefined,
+    standingSummary: str(root.standingSummary),
+    groupId: groups.id ? letterFromId(groups.id) : undefined,
   };
 }
 
-export function normalizeRoster(json: any, team?: Team): Player[] {
-  const athletes: any[] = json?.athletes ?? [];
-  return athletes.map((a) => ({
-    id: String(a?.id ?? ""),
-    name: String(a?.displayName ?? a?.fullName ?? "—"),
-    position: a?.position?.name || a?.position?.abbreviation,
-    jersey: a?.jersey,
-    age: a?.age,
-    dob: a?.dateOfBirth,
-    height: heightToCm(a?.height, a?.displayHeight),
-    weight: weightToKg(a?.weight, a?.displayWeight),
-    nationality: a?.citizenship,
-    headshot: a?.headshot?.href,
-    teamId: team?.id,
-    teamName: team?.name,
-    teamAbbr: team?.abbr,
-  }));
+function numOrUndef(v: unknown): number | undefined {
+  return typeof v === "number" ? v : undefined;
 }
 
-function extractAthleteStats(json: any): PlayerSeasonStat[] {
-  const cats =
-    json?.athlete?.statistics?.splits?.categories ??
-    json?.statistics?.splits?.categories ??
-    [];
+export function normalizeRoster(json: unknown, team?: Team): Player[] {
+  const athletes = arr(obj(json).athletes);
+  return athletes.map((aRaw) => {
+    const a = obj(aRaw);
+    const position = obj(a.position);
+    return {
+      id: str(a.id) ?? "",
+      name: str(a.displayName) ?? str(a.fullName) ?? "—",
+      position: str(position.name) || str(position.abbreviation),
+      jersey: str(a.jersey),
+      age: numOrUndef(a.age),
+      dob: str(a.dateOfBirth),
+      height: heightToCm(numOrUndef(a.height), str(a.displayHeight)),
+      weight: weightToKg(numOrUndef(a.weight), str(a.displayWeight)),
+      nationality: str(a.citizenship),
+      headshot: str(obj(a.headshot).href),
+      teamId: team?.id,
+      teamName: team?.name,
+      teamAbbr: team?.abbr,
+    };
+  });
+}
+
+function extractAthleteStats(json: unknown): PlayerSeasonStat[] {
+  const root = obj(json);
+  const cats = arr(
+    obj(obj(obj(root.athlete).statistics).splits).categories ??
+      obj(obj(root.statistics).splits).categories,
+  );
   const out: PlayerSeasonStat[] = [];
-  if (Array.isArray(cats)) {
-    for (const c of cats) {
-      for (const s of c?.stats ?? []) {
-        if (s?.displayName && s?.displayValue != null) {
-          out.push({ label: String(s.displayName), value: String(s.displayValue) });
-        }
+  for (const cRaw of cats) {
+    for (const sRaw of arr(obj(cRaw).stats)) {
+      const s = obj(sRaw);
+      const label = str(s.displayName);
+      if (label && s.displayValue != null) {
+        out.push({ label, value: str(s.displayValue) ?? "" });
       }
     }
   }
   return out.slice(0, 10);
 }
 
-export function normalizeAthlete(json: any): Player {
-  const a = json?.athlete ?? {};
+export function normalizeAthlete(json: unknown): Player {
+  const a = obj(obj(json).athlete);
+  const position = obj(a.position);
+  const team = obj(a.team);
   return {
-    id: String(a?.id ?? ""),
-    name: String(a?.displayName ?? a?.fullName ?? "—"),
-    position: a?.position?.name || a?.position?.abbreviation,
-    jersey: a?.jersey,
-    age: a?.age,
-    dob: a?.displayDOB || a?.dateOfBirth,
-    height: heightToCm(a?.height, a?.displayHeight),
-    weight: weightToKg(a?.weight, a?.displayWeight),
-    nationality: a?.citizenship,
-    club: a?.team?.name || a?.team?.displayName,
-    teamName: a?.team?.name,
-    headshot: a?.headshot?.href,
+    id: str(a.id) ?? "",
+    name: str(a.displayName) ?? str(a.fullName) ?? "—",
+    position: str(position.name) || str(position.abbreviation),
+    jersey: str(a.jersey),
+    age: numOrUndef(a.age),
+    dob: str(a.displayDOB) || str(a.dateOfBirth),
+    height: heightToCm(numOrUndef(a.height), str(a.displayHeight)),
+    weight: weightToKg(numOrUndef(a.weight), str(a.displayWeight)),
+    nationality: str(a.citizenship),
+    club: str(team.name) || str(team.displayName),
+    teamName: str(team.name),
+    headshot: str(obj(a.headshot).href),
     seasonStats: extractAthleteStats(json),
   };
 }
