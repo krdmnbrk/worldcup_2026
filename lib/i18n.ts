@@ -17,6 +17,7 @@ export const NAV = [
   { href: "/istatistikler", label: "İstatistikler" },
   { href: "/takimlar", label: "Takımlar" },
   { href: "/turkiye", label: "Türkiye" },
+  { href: "/duvar-kagidi", label: "Duvar Kağıdı" },
 ];
 
 export function stageLabel(stage: Stage): string {
