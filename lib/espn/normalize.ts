@@ -144,6 +144,10 @@ function buildTeamInMatch(c: any, groupId?: string): TeamInMatch {
     groupId,
     homeAway: c?.homeAway === "away" ? "away" : "home",
     score: c?.score != null && c?.score !== "" ? num(c.score) : undefined,
+    shootoutScore:
+      c?.shootoutScore != null && c?.shootoutScore !== ""
+        ? num(c.shootoutScore)
+        : undefined,
     winner: !!c?.winner,
     form: c?.form,
   };
@@ -261,6 +265,7 @@ function normalizeLineupPlayer(p: any): LineupPlayer {
     subbedIn: !!p?.subbedIn,
     subbedOut: !!p?.subbedOut,
     subbedForJersey: p?.subbedOutFor?.jersey,
+    captain: !!p?.captain,
     stats: normalizePlayerMatchStat(p?.stats),
   };
 }

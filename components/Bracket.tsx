@@ -46,6 +46,12 @@ function SlotSide({
       {s.score != null && (
         <span className="font-mono text-xs font-bold text-slate-200">
           {s.score}
+          {s.shootout != null && (
+            <span className="text-[9px] font-semibold text-amber-300">
+              {" "}
+              ({s.shootout})
+            </span>
+          )}
         </span>
       )}
     </div>

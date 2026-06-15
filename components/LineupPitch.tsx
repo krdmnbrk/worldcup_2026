@@ -37,7 +37,14 @@ function categorize(pos?: string): Cat {
   return "MID";
 }
 
-function PlayerDot({ p }: { p: LineupPlayer }) {
+const CAT_RING: Record<Cat, string> = {
+  GK: "ring-amber-400",
+  DEF: "ring-sky-400",
+  MID: "ring-emerald-400",
+  FWD: "ring-red-400",
+};
+
+function PlayerDot({ p, cat }: { p: LineupPlayer; cat: Cat }) {
   const last = p.name.split(/\s+/).slice(-1)[0];
   return (
     <Link
@@ -45,8 +52,15 @@ function PlayerDot({ p }: { p: LineupPlayer }) {
       className="group flex w-16 flex-col items-center gap-1"
       title={p.name}
     >
-      <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-xs font-bold text-emerald-900 ring-2 ring-emerald-900/40 group-hover:ring-white">
+      <span
+        className={`relative grid h-8 w-8 place-items-center rounded-full bg-white text-xs font-bold text-emerald-900 ring-2 ${CAT_RING[cat]} group-hover:ring-white`}
+      >
         {p.jersey || "•"}
+        {p.captain && (
+          <span className="absolute -right-1 -top-1 grid h-3.5 w-3.5 place-items-center rounded-full bg-yellow-400 text-[8px] font-bold text-black ring-1 ring-black/50">
+            C
+          </span>
+        )}
       </span>
       <span className="max-w-full truncate rounded bg-black/40 px-1 text-[10px] font-medium text-white">
         {last}
@@ -85,7 +99,7 @@ export function LineupPitch({ lineup }: { lineup: TeamLineup }) {
             rows[cat].length ? (
               <div key={cat} className="flex flex-wrap justify-center gap-2">
                 {rows[cat].map((p) => (
-                  <PlayerDot key={p.athleteId} p={p} />
+                  <PlayerDot key={p.athleteId} p={p} cat={cat} />
                 ))}
               </div>
             ) : null,
@@ -95,6 +109,33 @@ export function LineupPitch({ lineup }: { lineup: TeamLineup }) {
         <p className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-center text-sm text-slate-400">
           İlk 11 verisi bulunamadı.
         </p>
+      )}
+
+      {hasStarters && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
+          <span className="flex items-center gap-1">
+            <span className="h-2.5 w-2.5 rounded-full ring-2 ring-amber-400" />{" "}
+            Kaleci
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="h-2.5 w-2.5 rounded-full ring-2 ring-sky-400" />{" "}
+            Defans
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="h-2.5 w-2.5 rounded-full ring-2 ring-emerald-400" />{" "}
+            Orta saha
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="h-2.5 w-2.5 rounded-full ring-2 ring-red-400" />{" "}
+            Forvet
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="grid h-3 w-3 place-items-center rounded-full bg-yellow-400 text-[7px] font-bold text-black">
+              C
+            </span>{" "}
+            Kaptan
+          </span>
+        </div>
       )}
 
       {lineup.subs.length > 0 && (
@@ -112,6 +153,9 @@ export function LineupPitch({ lineup }: { lineup: TeamLineup }) {
                 <PlayerImage id={p.athleteId} src={p.headshot} name={p.name} size={22} />
                 <span className="text-xs text-slate-500">{p.jersey}</span>
                 <span className="truncate">{p.name}</span>
+                {p.captain && (
+                  <span className="text-[10px] font-bold text-yellow-400">(K)</span>
+                )}
                 <StatBadges s={p.stats} />
               </Link>
             ))}

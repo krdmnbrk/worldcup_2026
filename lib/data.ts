@@ -689,8 +689,8 @@ export function getBracket(): Promise<DataResult<BracketData>> {
             matchId: m.id,
             status: m.status,
             date: m.date,
-            home: { team: m.home, score: m.home.score },
-            away: { team: m.away, score: m.away.score },
+            home: { team: m.home, score: m.home.score, shootout: m.home.shootoutScore },
+            away: { team: m.away, score: m.away.score, shootout: m.away.shootoutScore },
           });
         } else {
           slots.push({

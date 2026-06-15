@@ -95,6 +95,11 @@ export function MatchCard({
               {formatTime(match.date)}
             </div>
           )}
+          {home.shootoutScore != null && away.shootoutScore != null && (
+            <div className="text-[10px] font-semibold text-amber-300">
+              P: {home.shootoutScore}-{away.shootoutScore}
+            </div>
+          )}
           {status === "in" && match.clock && (
             <div className="text-[10px] font-semibold text-red-300">
               {match.clock}

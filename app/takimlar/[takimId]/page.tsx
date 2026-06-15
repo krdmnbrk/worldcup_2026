@@ -11,6 +11,7 @@ import {
 } from "@/components/ui";
 import { TeamFlag } from "@/components/TeamFlag";
 import { FormBadge } from "@/components/FormBadge";
+import { AddToCalendar } from "@/components/AddToCalendar";
 import { GroupTable } from "@/components/GroupTable";
 import { MatchList } from "@/components/MatchList";
 import { PlayerCard } from "@/components/PlayerCard";
@@ -75,6 +76,15 @@ export default async function TeamPage({
               </div>
             </div>
           </div>
+          {matches.length > 0 && (
+            <div className="mt-4">
+              <AddToCalendar
+                matches={matches}
+                filename={`${(team.abbr || "takim").toLowerCase()}-maclar`}
+                label="Maçları takvime ekle"
+              />
+            </div>
+          )}
         </Container>
       </section>
 

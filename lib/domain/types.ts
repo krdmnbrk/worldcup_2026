@@ -24,6 +24,7 @@ export interface Team {
 
 export interface TeamInMatch extends Team {
   score?: number;
+  shootoutScore?: number; // penaltı atışları skoru (eleme)
   homeAway: "home" | "away";
   winner?: boolean;
   form?: string;
@@ -90,6 +91,7 @@ export interface LineupPlayer {
   subbedIn?: boolean;
   subbedOut?: boolean;
   subbedForJersey?: string;
+  captain?: boolean;
   stats?: PlayerMatchStat;
 }
 
@@ -238,6 +240,7 @@ export interface BracketTeam {
   team?: Team;
   placeholder?: string;
   score?: number;
+  shootout?: number;
 }
 
 export interface BracketSlot {

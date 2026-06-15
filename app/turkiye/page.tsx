@@ -13,6 +13,7 @@ import { GroupTable } from "@/components/GroupTable";
 import { MatchList } from "@/components/MatchList";
 import { PlayerCard } from "@/components/PlayerCard";
 import { StatLeaderboard, scorerEntries } from "@/components/StatLeaderboard";
+import { AddToCalendar } from "@/components/AddToCalendar";
 import { trCountry } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: "Türkiye" };
@@ -59,6 +60,15 @@ export default async function TurkiyePage() {
             Ay-yıldızlıların 2026 Dünya Kupası serüveni: maçlar, kadro,
             golcüler ve grup durumu.
           </p>
+          {matches.length > 0 && (
+            <div className="mt-4">
+              <AddToCalendar
+                matches={matches}
+                filename="turkiye-maclar"
+                label="Türkiye maçlarını takvime ekle"
+              />
+            </div>
+          )}
         </Container>
       </section>
 

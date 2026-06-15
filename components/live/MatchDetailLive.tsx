@@ -22,6 +22,8 @@ import { KeyMomentsTimeline } from "@/components/KeyMomentsTimeline";
 import { LineupPitch } from "@/components/LineupPitch";
 import { MatchSummaryStats } from "@/components/MatchSummaryStats";
 import { MatchPreview } from "@/components/MatchPreview";
+import { AddToCalendar } from "@/components/AddToCalendar";
+import { venueInfo } from "@/data/venues";
 import { trCountry } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/datetime";
 import { coachFor } from "@/data/coaches";
@@ -120,6 +122,7 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
     : [];
   const home = orderedLineups[0];
   const away = orderedLineups[1];
+  const venue = venueInfo(match.venue.name, match.venue.city);
 
   return (
     <>
@@ -160,6 +163,13 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
               ) : (
                 <div className="text-2xl font-bold text-emerald-300">VS</div>
               )}
+              {match.home.shootoutScore != null &&
+                match.away.shootoutScore != null && (
+                  <div className="mt-1 text-sm font-semibold text-amber-300">
+                    Penaltılar: {match.home.shootoutScore}-
+                    {match.away.shootoutScore}
+                  </div>
+                )}
               {match.status === "in" && match.clock && (
                 <div className="mt-1 text-xs font-semibold text-red-300">
                   {match.clock}
@@ -184,6 +194,11 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
               <span>
                 🏟 {match.venue.name}
                 {match.venue.city ? `, ${match.venue.city}` : ""}
+                {venue?.capacity
+                  ? ` · ${venue.capacity.toLocaleString("tr-TR")} kapasite`
+                  : ""}
+                {venue?.altitude ? ` · ${venue.altitude}m rakım` : ""}
+                {venue?.roof ? ` · ${venue.roof}` : ""}
               </span>
             )}
             {played && <span>🗓 {formatDateTime(match.date)}</span>}
@@ -194,6 +209,10 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
             {match.broadcasts && match.broadcasts.length > 0 && (
               <span>📺 {match.broadcasts.join(", ")}</span>
             )}
+          </div>
+
+          <div className="mt-3 flex justify-center">
+            <AddToCalendar matches={[match]} filename={`mac-${match.id}`} />
           </div>
         </Container>
       </section>
