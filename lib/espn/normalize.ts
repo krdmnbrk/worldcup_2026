@@ -22,13 +22,14 @@ import type {
 } from "@/lib/domain/types";
 import { stageLabel, statLabel, FEATURED_STATS } from "@/lib/i18n";
 import { teamLogoUrl } from "@/lib/espn/endpoints";
+import { obj, arr, str } from "@/lib/espn/json";
 
 // ---- küçük yardımcılar ----
-function num(v: any): number {
+function num(v: unknown): number {
   const n = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(",", "."));
   return Number.isFinite(n) ? n : 0;
 }
-function statNum(v: any): number {
+function statNum(v: unknown): number {
   const n = parseFloat(String(v ?? "").replace("%", "").replace(",", "."));
   return Number.isFinite(n) ? n : NaN;
 }
@@ -394,31 +395,34 @@ export function normalizePreview(json: any): MatchPreview {
 }
 
 // ---- grup tabloları (apis/v2) ----
-function statByName(stats: any[], name: string): number {
-  const s = (stats ?? []).find((x) => x?.name === name);
-  return s ? num(s.value ?? s.displayValue) : 0;
+function statByName(stats: unknown[], name: string): number {
+  const s = stats.find((x) => obj(x).name === name);
+  return s ? num(obj(s).value ?? obj(s).displayValue) : 0;
 }
 
-function teamFromStandingEntry(t: any): Team {
-  const abbr = String(t?.abbreviation ?? "");
+function teamFromStandingEntry(t: unknown): Team {
+  const td = obj(t);
+  const abbr = str(td.abbreviation) ?? "";
   return {
-    id: String(t?.id ?? ""),
-    name: String(t?.displayName ?? t?.name ?? "—"),
+    id: str(td.id) ?? "",
+    name: str(td.displayName) ?? str(td.name) ?? "—",
     abbr,
-    logo: t?.logos?.[0]?.href || (abbr ? teamLogoUrl(abbr) : ""),
+    logo: str(obj(arr(td.logos)[0]).href) || (abbr ? teamLogoUrl(abbr) : ""),
   };
 }
 
-export function normalizeStandings(json: any): GroupStanding[] {
-  const children: any[] = json?.children ?? [];
+export function normalizeStandings(json: unknown): GroupStanding[] {
+  const children = arr(obj(json).children);
   const groups: GroupStanding[] = [];
 
-  for (const g of children) {
-    const entries: any[] = g?.standings?.entries ?? [];
+  for (const gRaw of children) {
+    const g = obj(gRaw);
+    const entries = arr(obj(g.standings).entries);
     if (!entries.length) continue;
-    const rows: StandingRow[] = entries.map((e) => {
-      const s = e?.stats ?? [];
-      const team = teamFromStandingEntry(e?.team);
+    const rows: StandingRow[] = entries.map((eRaw) => {
+      const e = obj(eRaw);
+      const s = arr(e.stats);
+      const team = teamFromStandingEntry(e.team);
       return {
         team,
         played: statByName(s, "gamesPlayed"),
@@ -434,8 +438,8 @@ export function normalizeStandings(json: any): GroupStanding[] {
     });
     sortRows(rows);
     const nameLetter =
-      String(g?.name ?? "").match(/Group\s+([A-L])/i)?.[1]?.toUpperCase() ??
-      letterFromId(g?.id);
+      (str(g.name) ?? "").match(/Group\s+([A-L])/i)?.[1]?.toUpperCase() ??
+      letterFromId(g.id);
     groups.push({
       groupId: nameLetter,
       groupName: `Grup ${nameLetter}`,
@@ -447,11 +451,12 @@ export function normalizeStandings(json: any): GroupStanding[] {
   return groups;
 }
 
-function letterFromId(id: any): string {
-  const n = parseInt(String(id ?? ""), 10);
+function letterFromId(id: unknown): string {
+  const raw = str(id) ?? "";
+  const n = parseInt(raw, 10);
   return Number.isFinite(n) && n >= 1 && n <= 26
     ? String.fromCharCode(64 + n)
-    : String(id ?? "?");
+    : raw || "?";
 }
 
 function sortRows(rows: StandingRow[]): void {
@@ -468,21 +473,25 @@ function sortRows(rows: StandingRow[]): void {
 }
 
 // cdn.espn yedeği: standings.groups[].standings.entries[]
-export function normalizeStandingsFallback(json: any): GroupStanding[] {
-  const groupsRaw: any[] =
-    json?.standings?.groups ?? json?.content?.standings?.groups ?? [];
+export function normalizeStandingsFallback(json: unknown): GroupStanding[] {
+  const root = obj(json);
+  const groupsRaw = arr(
+    obj(root.standings).groups ?? obj(obj(root.content).standings).groups,
+  );
   const groups: GroupStanding[] = [];
-  for (const g of groupsRaw) {
-    const entries: any[] = g?.standings?.entries ?? [];
+  for (const gRaw of groupsRaw) {
+    const g = obj(gRaw);
+    const entries = arr(obj(g.standings).entries);
     if (!entries.length) continue;
-    const byAbbr = (s: any[], ab: string) => {
-      const x = (s ?? []).find((y) => y?.abbreviation === ab);
-      return x ? num(x.value ?? x.displayValue) : 0;
+    const byAbbr = (s: unknown[], ab: string) => {
+      const x = s.find((y) => obj(y).abbreviation === ab);
+      return x ? num(obj(x).value ?? obj(x).displayValue) : 0;
     };
-    const rows: StandingRow[] = entries.map((e) => {
-      const s = e?.stats ?? [];
+    const rows: StandingRow[] = entries.map((eRaw) => {
+      const e = obj(eRaw);
+      const s = arr(e.stats);
       return {
-        team: teamFromStandingEntry(e?.team),
+        team: teamFromStandingEntry(e.team),
         played: byAbbr(s, "GP"),
         w: byAbbr(s, "W"),
         d: byAbbr(s, "D"),
@@ -491,13 +500,14 @@ export function normalizeStandingsFallback(json: any): GroupStanding[] {
         ga: byAbbr(s, "A"),
         gd: byAbbr(s, "GD"),
         points: byAbbr(s, "P"),
-        rank: num(e?.note?.rank),
+        rank: num(obj(e.note).rank),
       };
     });
     sortRows(rows);
     const nameLetter =
-      String(g?.name ?? g?.abbreviation ?? "").match(/([A-L])\s*$/i)?.[1]?.toUpperCase() ??
-      letterFromId(g?.id);
+      (str(g.name) ?? str(g.abbreviation) ?? "")
+        .match(/([A-L])\s*$/i)?.[1]
+        ?.toUpperCase() ?? letterFromId(g.id);
     groups.push({
       groupId: nameLetter,
       groupName: `Grup ${nameLetter}`,
@@ -510,17 +520,20 @@ export function normalizeStandingsFallback(json: any): GroupStanding[] {
 }
 
 // ---- takımlar ----
-export function normalizeTeams(json: any): Team[] {
-  const teams: any[] = json?.sports?.[0]?.leagues?.[0]?.teams ?? [];
+export function normalizeTeams(json: unknown): Team[] {
+  const sports = arr(obj(json).sports);
+  const leagues = arr(obj(sports[0]).leagues);
+  const teams = arr(obj(leagues[0]).teams);
   return teams.map((w) => {
-    const t = w?.team ?? w;
-    const abbr = String(t?.abbreviation ?? "");
+    const t = obj(obj(w).team ?? w);
+    const abbr = str(t.abbreviation) ?? "";
+    const color = str(t.color);
     return {
-      id: String(t?.id ?? ""),
-      name: String(t?.displayName ?? t?.name ?? "—"),
+      id: str(t.id) ?? "",
+      name: str(t.displayName) ?? str(t.name) ?? "—",
       abbr,
-      logo: t?.logos?.[0]?.href || (abbr ? teamLogoUrl(abbr) : ""),
-      colorHex: t?.color ? `#${String(t.color).replace(/^#/, "")}` : undefined,
+      logo: str(obj(arr(t.logos)[0]).href) || (abbr ? teamLogoUrl(abbr) : ""),
+      colorHex: color ? `#${color.replace(/^#/, "")}` : undefined,
     };
   });
 }
