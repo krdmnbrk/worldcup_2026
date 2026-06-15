@@ -11,6 +11,7 @@ import {
 import { MatchCard } from "@/components/MatchCard";
 import { StatLeaderboard, scorerEntries } from "@/components/StatLeaderboard";
 import { LiveTodayMatches } from "@/components/live/LiveTodayMatches";
+import { FavoriteTeamCard } from "@/components/live/FavoriteTeamCard";
 import { SITE } from "@/lib/i18n";
 import type { Match } from "@/lib/domain/types";
 
@@ -70,6 +71,8 @@ export default async function HomePage() {
       </section>
 
       <Container className="space-y-12 py-10">
+        <FavoriteTeamCard matches={all} />
+
         <section>
           <SectionTitle
             title={live.length ? "Canlı ve Bugün" : "Bugünün Maçları"}

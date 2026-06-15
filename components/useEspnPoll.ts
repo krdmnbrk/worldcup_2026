@@ -19,9 +19,11 @@ export function useEspnPoll<T>(
     if (!enabled) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
+    let errors = 0; // ağ hatasında üssel geri çekilme (pil/veri tasarrufu)
 
     const schedule = () => {
-      timer = setTimeout(run, intervalMs);
+      const backoff = Math.min(2 ** errors, 8); // 1×..8× (maks ~8 kat)
+      timer = setTimeout(run, intervalMs * backoff);
     };
     const run = async () => {
       if (typeof document !== "undefined" && document.hidden) {
@@ -33,9 +35,10 @@ export function useEspnPoll<T>(
         if (!cancelled && next != null) {
           setData(next);
           setUpdatedAt(Date.now());
+          errors = 0;
         }
       } catch {
-        /* sessizce geç, bir sonraki turda tekrar dene */
+        errors = Math.min(errors + 1, 4);
       }
       if (!cancelled) schedule();
     };

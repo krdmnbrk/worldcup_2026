@@ -79,8 +79,12 @@ export function Bracket({ data }: { data: BracketData }) {
     data.bracket.slots.filter((s) => s.round === r);
 
   return (
-    <div className="overflow-x-auto pb-2">
-      <div className="flex min-w-max gap-4">
+    <div>
+      <p className="mb-2 text-center text-[11px] text-slate-500 sm:hidden">
+        ← yatay kaydırarak gez →
+      </p>
+      <div className="x-scroll overflow-x-auto pb-2">
+        <div className="flex min-w-max gap-4">
         {ORDER.map((round) => {
           const slots = byRound(round);
           if (!slots.length) return null;
@@ -97,6 +101,7 @@ export function Bracket({ data }: { data: BracketData }) {
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );

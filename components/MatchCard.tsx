@@ -117,12 +117,12 @@ export function MatchCard({
       </div>
 
       {(match.venue.name || match.venue.city) && (
-        <div className="mt-2 truncate text-center text-[11px] text-slate-500">
+        <div className="mt-2 hidden truncate text-center text-[11px] text-slate-500 sm:block">
           {[match.venue.name, match.venue.city].filter(Boolean).join(" · ")}
         </div>
       )}
       {match.broadcasts && match.broadcasts.length > 0 && (
-        <div className="mt-1 truncate text-center text-[11px] text-slate-500">
+        <div className="mt-1 hidden truncate text-center text-[11px] text-slate-500 sm:block">
           📺 {match.broadcasts.slice(0, 3).join(", ")}
         </div>
       )}

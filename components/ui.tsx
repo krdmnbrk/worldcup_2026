@@ -55,7 +55,7 @@ export function SectionTitle({
       {href && (
         <Link
           href={href}
-          className="shrink-0 text-sm font-medium text-emerald-400 hover:text-emerald-300"
+          className="-m-2 inline-flex shrink-0 items-center p-2 text-sm font-medium text-emerald-400 hover:text-emerald-300"
         >
           {hrefLabel} →
         </Link>
@@ -109,6 +109,10 @@ export function EmptyState({
       {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
     </div>
   );
+}
+
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`skeleton rounded-md ${className}`} />;
 }
 
 export function StaleBanner({ stale }: { stale: boolean }) {

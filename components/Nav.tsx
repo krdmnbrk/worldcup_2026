@@ -48,12 +48,15 @@ export function Nav() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="rounded-lg border border-white/10 p-2 text-slate-200 md:hidden"
+          className="grid h-11 w-11 place-items-center rounded-lg border border-white/10 text-slate-200 md:hidden"
           aria-label="Menü"
+          aria-expanded={open}
         >
-          <span className="block h-0.5 w-5 bg-current" />
-          <span className="mt-1 block h-0.5 w-5 bg-current" />
-          <span className="mt-1 block h-0.5 w-5 bg-current" />
+          <span className="flex flex-col gap-1">
+            <span className="block h-0.5 w-5 bg-current" />
+            <span className="block h-0.5 w-5 bg-current" />
+            <span className="block h-0.5 w-5 bg-current" />
+          </span>
         </button>
       </div>
 
@@ -64,7 +67,7 @@ export function Nav() {
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className={`rounded-lg px-3 py-2 text-sm font-medium ${
+              className={`flex min-h-[2.75rem] items-center rounded-lg px-3 text-sm font-medium ${
                 isActive(item.href)
                   ? "bg-emerald-500/15 text-emerald-300"
                   : "text-slate-300 hover:bg-white/5"

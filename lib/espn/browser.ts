@@ -57,6 +57,20 @@ export async function browserAllMatches(): Promise<Match[]> {
   );
 }
 
+// Yalnızca bugünün penceresi (tek istek) — global canlı çubuk için hafif.
+export async function browserLiveToday(): Promise<Match[]> {
+  try {
+    const now = Date.now();
+    const from = ymd(new Date(now - 86400000).toISOString());
+    const to = ymd(new Date(now + 86400000).toISOString());
+    return normalizeScoreboard(
+      await getJson(endpoints.scoreboard(`${from}-${to}`)),
+    );
+  } catch {
+    return [];
+  }
+}
+
 export async function browserStandings(): Promise<GroupStanding[]> {
   try {
     const g = normalizeStandings(await getJson(endpoints.standings()));

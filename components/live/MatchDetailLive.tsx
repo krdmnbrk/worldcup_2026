@@ -16,6 +16,7 @@ import {
   Pill,
   LiveBadge,
   EmptyState,
+  Skeleton,
 } from "@/components/ui";
 import { TeamFlag } from "@/components/TeamFlag";
 import { KeyMomentsTimeline } from "@/components/KeyMomentsTimeline";
@@ -70,6 +71,7 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
   const [formations, setFormations] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
   const [preview, setPreview] = useState<MatchPreviewData | null>(null);
+  const [tab, setTab] = useState("anlar");
 
   const played = match.status === "in" || match.status === "post";
 
@@ -123,6 +125,14 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
   const home = orderedLineups[0];
   const away = orderedLineups[1];
   const venue = venueInfo(match.venue.name, match.venue.city);
+  // Mobilde sekme; masaüstünde (lg) hepsi görünür
+  const sec = (k: string) => `${tab === k ? "block" : "hidden"} lg:block`;
+  const tabs = [
+    { key: "anlar", label: "Kritik Anlar" },
+    { key: "istatistik", label: "İstatistik" },
+    { key: "dizilis", label: "Diziliş" },
+    ...(summary?.recap ? [{ key: "anlati", label: "Anlatı" }] : []),
+  ];
 
   return (
     <>
@@ -228,102 +238,133 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
             />
           )
         ) : (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-            <div className="space-y-8 lg:col-span-3">
-              {summary?.recap && (
-                <section>
-                  <h2 className="mb-3 text-lg font-bold text-white">
-                    Maç Anlatısı
-                  </h2>
-                  <Card className="p-4">
-                    <p className="mb-2 text-sm font-semibold text-white">
-                      {summary.recap.headline}
-                    </p>
-                    <p className="text-sm leading-relaxed text-slate-300">
-                      {summary.recap.text.slice(0, 900)}
-                      {summary.recap.text.length > 900 ? "…" : ""}
-                    </p>
-                    <p className="mt-2 text-[11px] text-slate-500">
-                      Kaynak: ESPN (İngilizce)
-                    </p>
-                  </Card>
-                </section>
-              )}
-
-              <section>
-                <h2 className="mb-3 text-lg font-bold text-white">Kritik Anlar</h2>
-                <Card className="p-4">
-                  <KeyMomentsTimeline
-                    events={match.events}
-                    homeId={match.home.id}
-                  />
-                </Card>
-              </section>
-
-              <section>
-                <h2 className="mb-3 text-lg font-bold text-white">
-                  Maç İstatistikleri
-                </h2>
-                <Card className="p-4">
-                  <div className="mb-3 flex items-center justify-between text-xs font-semibold">
-                    <span className="text-emerald-300">
-                      {trCountry(match.home.name)}
-                    </span>
-                    <span className="text-sky-300">
-                      {trCountry(match.away.name)}
-                    </span>
-                  </div>
-                  {summary ? (
-                    <MatchSummaryStats stats={summary.teamStats} />
-                  ) : (
-                    <p className="py-6 text-center text-sm text-slate-500">
-                      {loaded ? "İstatistik verisi yok." : "Yükleniyor…"}
-                    </p>
-                  )}
-                </Card>
-              </section>
+          <div>
+            {/* Mobil sekme şeridi (masaüstünde tüm bölümler görünür) */}
+            <div className="x-scroll mb-4 flex gap-2 overflow-x-auto lg:hidden">
+              {tabs.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setTab(t.key)}
+                  className={`min-h-[2.5rem] whitespace-nowrap rounded-full px-4 text-sm font-medium ${
+                    tab === t.key
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "bg-white/5 text-slate-400"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
             </div>
 
-            <div className="space-y-8 lg:col-span-2">
-              <section>
-                <h2 className="mb-3 text-lg font-bold text-white">Dizilişler</h2>
-                {!summary ? (
-                  <p className="py-6 text-center text-sm text-slate-500">
-                    {loaded ? "Kadro verisi yok." : "Kadrolar yükleniyor…"}
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {home && (
-                      <Card className="p-3">
-                        <p className="mb-2 flex items-center gap-2 text-sm font-bold text-white">
-                          <TeamFlag
-                            abbr={match.home.abbr}
-                            logo={match.home.logo}
-                            name={match.home.name}
-                            size={20}
-                          />
-                          {trCountry(match.home.name)}
-                        </p>
-                        <LineupPitch lineup={home} />
-                      </Card>
-                    )}
-                    {away && (
-                      <Card className="p-3">
-                        <p className="mb-2 flex items-center gap-2 text-sm font-bold text-white">
-                          <TeamFlag
-                            abbr={match.away.abbr}
-                            logo={match.away.logo}
-                            name={match.away.name}
-                            size={20}
-                          />
-                          {trCountry(match.away.name)}
-                        </p>
-                        <LineupPitch lineup={away} />
-                      </Card>
-                    )}
-                  </div>
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+              <div className="space-y-8 lg:col-span-3">
+                {summary?.recap && (
+                  <section className={sec("anlati")}>
+                    <h2 className="mb-3 text-lg font-bold text-white">
+                      Maç Anlatısı
+                    </h2>
+                    <Card className="p-4">
+                      <p className="mb-2 text-sm font-semibold text-white">
+                        {summary.recap.headline}
+                      </p>
+                      <p className="text-sm leading-relaxed text-slate-300">
+                        {summary.recap.text.slice(0, 900)}
+                        {summary.recap.text.length > 900 ? "…" : ""}
+                      </p>
+                      <p className="mt-2 text-[11px] text-slate-500">
+                        Kaynak: ESPN (İngilizce)
+                      </p>
+                    </Card>
+                  </section>
                 )}
-              </section>
+
+                <section className={sec("anlar")}>
+                  <h2 className="mb-3 text-lg font-bold text-white">Kritik Anlar</h2>
+                  <Card className="p-4">
+                    <KeyMomentsTimeline
+                      events={match.events}
+                      homeId={match.home.id}
+                    />
+                  </Card>
+                </section>
+
+                <section className={sec("istatistik")}>
+                  <h2 className="mb-3 text-lg font-bold text-white">
+                    Maç İstatistikleri
+                  </h2>
+                  <Card className="p-4">
+                    <div className="mb-3 flex items-center justify-between text-xs font-semibold">
+                      <span className="text-emerald-300">
+                        {trCountry(match.home.name)}
+                      </span>
+                      <span className="text-sky-300">
+                        {trCountry(match.away.name)}
+                      </span>
+                    </div>
+                    {summary ? (
+                      <MatchSummaryStats stats={summary.teamStats} />
+                    ) : loaded ? (
+                      <p className="py-6 text-center text-sm text-slate-500">
+                        İstatistik verisi yok.
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <Skeleton key={i} className="h-6" />
+                        ))}
+                      </div>
+                    )}
+                  </Card>
+                </section>
+              </div>
+
+              <div className="space-y-8 lg:col-span-2">
+                <section className={sec("dizilis")}>
+                  <h2 className="mb-3 text-lg font-bold text-white">Dizilişler</h2>
+                  {summary ? (
+                    <div className="space-y-4">
+                      {home && (
+                        <Card className="p-3">
+                          <p className="mb-2 flex items-center gap-2 text-sm font-bold text-white">
+                            <TeamFlag
+                              abbr={match.home.abbr}
+                              logo={match.home.logo}
+                              name={match.home.name}
+                              size={20}
+                            />
+                            {trCountry(match.home.name)}
+                          </p>
+                          <LineupPitch lineup={home} />
+                        </Card>
+                      )}
+                      {away && (
+                        <Card className="p-3">
+                          <p className="mb-2 flex items-center gap-2 text-sm font-bold text-white">
+                            <TeamFlag
+                              abbr={match.away.abbr}
+                              logo={match.away.logo}
+                              name={match.away.name}
+                              size={20}
+                            />
+                            {trCountry(match.away.name)}
+                          </p>
+                          <LineupPitch lineup={away} />
+                        </Card>
+                      )}
+                    </div>
+                  ) : loaded ? (
+                    <p className="py-6 text-center text-sm text-slate-500">
+                      Kadro verisi yok.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <Skeleton className="h-48" />
+                      <Skeleton className="h-48" />
+                    </div>
+                  )}
+                </section>
+              </div>
             </div>
           </div>
         )}

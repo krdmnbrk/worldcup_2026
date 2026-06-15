@@ -60,3 +60,63 @@ body {
 .live-dot {
   animation: pulseLive 1.2s ease-in-out infinite;
 }
+
+/* Güvenli alan yardımcıları (çentik / home-indicator) */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Yatay kaydırma şeritleri için momentum + temiz kaydırma */
+.x-scroll {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.x-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* İskelet (skeleton) yükleme efekti */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+  animation: shimmer 1.4s infinite;
+}
+
+/* Hareket azaltma tercihi — erişilebilirlik (WCAG 2.3.3) + pil */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .live-dot,
+  .skeleton::after {
+    animation: none;
+  }
+  .live-dot {
+    opacity: 1;
+  }
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
