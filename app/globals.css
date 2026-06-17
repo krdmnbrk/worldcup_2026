@@ -4,10 +4,36 @@
   color-scheme: dark;
 }
 
+/* ============================================================
+   Tasarım jetonları — "Yayın / Broadcast" teması
+   Koyu lacivert zemin · kehribar (amber) ana renk · indigo vurgu
+   ============================================================ */
 @theme {
+  /* Marka renkleri */
+  --color-brand: #f59e0b; /* kehribar — ana aksiyon/marka */
+  --color-brand-strong: #d97706; /* koyu kehribar — hover/vurgu */
+  --color-brand-soft: #fbbf24; /* açık kehribar — metin/ikon */
+  --color-accent: #6366f1; /* indigo — ikincil vurgu/CTA */
+  --color-accent-soft: #818cf8; /* açık indigo */
+  --color-live: #ef4444; /* canlı/kırmızı */
+
+  /* Yüzeyler */
+  --color-base: #0b1120; /* sayfa zemini */
+  --color-surface: #121a2e; /* kart zemini (opak alternatif) */
+  --color-surface-2: #1a2440; /* yükseltilmiş yüzey */
+  --color-hairline: rgba(255, 255, 255, 0.08); /* ince çizgi */
+
+  /* Saha yeşili (diziliş bileşeni için korunur) */
   --color-pitch: #0b6b3a;
   --color-pitch-light: #12a150;
-  --font-sans: var(--font-geist-sans);
+
+  /* Tipografi */
+  --font-sans: var(--font-fira-sans), system-ui, sans-serif;
+  --font-mono: var(--font-fira-code), ui-monospace, monospace;
+
+  /* Yükseklik (gölge) ölçeği */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-pop: 0 12px 40px -12px rgba(0, 0, 0, 0.7);
 }
 
 html {
@@ -17,19 +43,30 @@ html {
 /* Klavye odağı görünürlüğü (WCAG 2.4.7). :focus-visible yalnızca klavye/
    programatik odakta tetiklenir → fare/dokunma tıklamasında halka görünmez. */
 :focus-visible {
-  outline: 2px solid #34d399;
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 body {
   background:
-    radial-gradient(1200px 600px at 50% -200px, #102a43 0%, transparent 60%),
-    #070b14;
-  color: #e5edf7;
-  font-family: var(--font-geist-sans, system-ui, sans-serif);
+    radial-gradient(900px 500px at 8% -180px, rgba(245, 158, 11, 0.12) 0%, transparent 55%),
+    radial-gradient(900px 500px at 95% -120px, rgba(99, 102, 241, 0.14) 0%, transparent 55%),
+    #0b1120;
+  background-attachment: fixed;
+  color: #eef2fb;
+  font-family: var(--font-fira-sans, system-ui, sans-serif);
+  font-feature-settings: "cv05", "ss01";
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   min-height: 100vh;
+}
+
+/* Sayısal değerler için sekme hizalı (tabular) rakamlar — skor/saat/istatistik
+   sütunlarında düzen kaymasını önler. */
+.tabular,
+.font-mono {
+  font-variant-numeric: tabular-nums;
 }
 
 ::-webkit-scrollbar {
@@ -67,6 +104,20 @@ body {
 }
 .live-dot {
   animation: pulseLive 1.2s ease-in-out infinite;
+}
+
+/* Canlı kart için hafif kenar parıltısı */
+@keyframes liveGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.4), 0 0 20px -6px rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25), 0 0 12px -8px rgba(239, 68, 68, 0.3);
+  }
+}
+.live-glow {
+  animation: liveGlow 2.4s ease-in-out infinite;
 }
 
 /* Güvenli alan yardımcıları (çentik / home-indicator) */
@@ -111,12 +162,29 @@ body {
   animation: shimmer 1.4s infinite;
 }
 
+/* Liste girişlerinin kademeli (stagger) belirmesi */
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise-in {
+  animation: riseIn 0.32s ease-out both;
+}
+
 /* Hareket azaltma tercihi — erişilebilirlik (WCAG 2.3.3) + pil */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
   .live-dot,
+  .live-glow,
+  .rise-in,
   .skeleton::after {
     animation: none;
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Tv, MapPin, CalendarDays, UserCog, Users } from "lucide-react";
 import { useEspnPoll } from "@/components/useEspnPoll";
 import {
   browserMatch,
@@ -156,7 +157,7 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
             ) : match.status === "post" ? (
               <Pill tone="slate">{match.statusDetail || "Bitti"}</Pill>
             ) : (
-              <Pill tone="emerald">Yaklaşan</Pill>
+              <Pill tone="indigo">Yaklaşan</Pill>
             )}
           </div>
 
@@ -175,7 +176,7 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
                   {match.away.score ?? 0}
                 </div>
               ) : (
-                <div className="text-2xl font-bold text-emerald-300">VS</div>
+                <div className="text-2xl font-bold text-amber-300">VS</div>
               )}
               {match.home.shootoutScore != null &&
                 match.away.shootoutScore != null && (
@@ -216,8 +217,9 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
 
           <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-center text-xs text-slate-500">
             {match.venue.name && (
-              <span>
-                🏟 {match.venue.name}
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {match.venue.name}
                 {match.venue.city ? `, ${match.venue.city}` : ""}
                 {venue?.capacity
                   ? ` · ${venue.capacity.toLocaleString("tr-TR")} kapasite`
@@ -226,13 +228,26 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
                 {venue?.roof ? ` · ${venue.roof}` : ""}
               </span>
             )}
-            {played && <span>🗓 {formatDateTime(match.date)}</span>}
-            {summary?.referee && <span>👤 Hakem: {summary.referee}</span>}
+            {played && (
+              <span className="inline-flex items-center gap-1">
+                <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {formatDateTime(match.date)}
+              </span>
+            )}
+            {summary?.referee && (
+              <span className="inline-flex items-center gap-1">
+                <UserCog className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                Hakem: {summary.referee}
+              </span>
+            )}
             {summary?.attendance ? (
-              <span>👥 {summary.attendance.toLocaleString("tr-TR")} seyirci</span>
+              <span className="inline-flex items-center gap-1">
+                <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {summary.attendance.toLocaleString("tr-TR")} seyirci
+              </span>
             ) : null}
             {match.broadcasts && match.broadcasts.length > 0 && (
-              <span>📺 {match.broadcasts.join(", ")}</span>
+              <span className="inline-flex items-center gap-1"><Tv className="h-3.5 w-3.5" aria-hidden /> {match.broadcasts.join(", ")}</span>
             )}
           </div>
 
@@ -263,7 +278,7 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
                   onClick={() => setTab(t.key)}
                   className={`min-h-[2.5rem] whitespace-nowrap rounded-full px-4 text-sm font-medium ${
                     tab === t.key
-                      ? "bg-emerald-500/20 text-emerald-300"
+                      ? "bg-amber-500/20 text-amber-300"
                       : "bg-white/5 text-slate-400"
                   }`}
                 >
@@ -310,10 +325,10 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
                   </h2>
                   <Card className="p-4">
                     <div className="mb-3 flex items-center justify-between text-xs font-semibold">
-                      <span className="text-emerald-300">
+                      <span className="text-amber-300">
                         {trCountry(match.home.name)}
                       </span>
-                      <span className="text-sky-300">
+                      <span className="text-indigo-300">
                         {trCountry(match.away.name)}
                       </span>
                     </div>

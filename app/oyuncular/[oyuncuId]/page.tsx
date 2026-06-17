@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { CircleDot, Tv } from "lucide-react";
 import type { Metadata } from "next";
 import { getPlayer, getPlayerIndex, getAllMatches } from "@/lib/data";
 import {
@@ -28,14 +30,14 @@ export async function generateStaticParams() {
   return [...ids].map((id) => ({ oyuncuId: id }));
 }
 
-const ICONS: Record<EventType, string> = {
-  goal: "⚽",
-  penalty: "⚽",
-  "own-goal": "⚽",
+const ICONS: Record<EventType, ReactNode> = {
+  goal: <CircleDot className="inline h-3.5 w-3.5" aria-hidden />,
+  penalty: <CircleDot className="inline h-3.5 w-3.5" aria-hidden />,
+  "own-goal": <CircleDot className="inline h-3.5 w-3.5" aria-hidden />,
   yellow: "🟨",
   red: "🟥",
   sub: "🔁",
-  var: "📺",
+  var: <Tv className="inline h-3.5 w-3.5" aria-hidden />,
   other: "•",
 };
 
@@ -167,7 +169,7 @@ export default async function PlayerPage({
                 <Link
                   key={match.id}
                   href={`/maclar/${match.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 hover:border-emerald-500/40 hover:bg-white/[0.06]"
+                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 hover:border-amber-500/40 hover:bg-white/[0.06]"
                 >
                   <span className="w-24 shrink-0 text-xs text-slate-500">
                     {formatDate(match.date)}

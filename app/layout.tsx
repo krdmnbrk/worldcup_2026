@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Fira_Sans, Fira_Code } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
@@ -9,9 +9,18 @@ import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { SITE } from "@/lib/i18n";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const firaSans = Fira_Sans({
+  variable: "--font-fira-sans",
+  weight: ["300", "400", "500", "600", "700"],
   subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+const firaCode = Fira_Code({
+  variable: "--font-fira-code",
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  display: "swap",
 });
 
 const BASE = process.env.NODE_ENV === "production" ? "/worldcup_2026" : "";
@@ -64,7 +73,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#070b14",
+  themeColor: "#0b1120",
 };
 
 export default function RootLayout({
@@ -73,7 +82,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" className={`${geistSans.variable} antialiased`}>
+    <html
+      lang="tr"
+      className={`${firaSans.variable} ${firaCode.variable} antialiased`}
+    >
       <body className="flex min-h-screen flex-col">
         <Nav />
         {/* Alt navigasyon + canlı çubuk için mobilde alt boşluk (safe-area dahil) */}

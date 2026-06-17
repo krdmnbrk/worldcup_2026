@@ -26,10 +26,10 @@ export function MatchSummaryStats({ stats }: { stats: TeamMatchStat[] }) {
             </div>
             <div className="flex h-1.5 overflow-hidden rounded-full bg-white/5">
               <div
-                className="bg-emerald-500"
+                className="bg-amber-500"
                 style={{ width: `${hr}%` }}
               />
-              <div className="flex-1 bg-sky-500" style={{ width: `${ar}%` }} />
+              <div className="flex-1 bg-indigo-500" style={{ width: `${ar}%` }} />
             </div>
           </div>
         );

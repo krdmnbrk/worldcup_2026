@@ -65,7 +65,7 @@ export default async function TeamPage({
                 {trCountry(team.name)}
               </h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-400">
-                {groupId && <Pill tone="emerald">Grup {groupId}</Pill>}
+                {groupId && <Pill tone="indigo">Grup {groupId}</Pill>}
                 {standingSummary && <span>{standingSummary}</span>}
                 {form.length > 0 && (
                   <span className="flex items-center gap-1.5">

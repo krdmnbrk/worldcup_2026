@@ -45,12 +45,27 @@ export default async function HomePage() {
     <>
       <StaleBanner stale={matchesRes.stale} />
 
-      <section className="border-b border-white/10 bg-gradient-to-b from-emerald-950/40 to-transparent">
+      <section className="relative overflow-hidden border-b border-white/[0.08]">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
+            backgroundSize: "44px 44px",
+            maskImage:
+              "radial-gradient(120% 80% at 50% -20%, black 30%, transparent 75%)",
+          }}
+        />
         <Container className="py-10 sm:py-14">
           <div className="flex flex-wrap items-center gap-2">
-            <Pill tone="emerald">Grup Aşaması</Pill>
+            <Pill tone="amber">Grup Aşaması</Pill>
             <Pill tone="slate">{SITE.hosts}</Pill>
-            {live.length > 0 && <Pill tone="red">{live.length} maç canlı</Pill>}
+            {live.length > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-red-300 ring-1 ring-red-500/40">
+                <span className="live-dot h-1.5 w-1.5 rounded-full bg-red-400" />
+                {live.length} maç canlı
+              </span>
+            )}
           </div>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
             {SITE.longTitle}
@@ -59,7 +74,7 @@ export default async function HomePage() {
             {SITE.subtitle}. 48 takım, 12 grup, 104 maç. Canlı skorlar, fikstür,
             grup tabloları, eleme ağacı ve istatistikleri tek yerde takip edin.
           </p>
-          <div className="mt-5 flex flex-wrap gap-3 text-sm">
+          <div className="mt-6 grid grid-cols-3 gap-3 text-sm sm:flex sm:flex-wrap">
             <Stat label="Oynanan maç" value={`${playedCount} / 104`} />
             <Stat label="Toplam gol" value={String(statsRes.data.totalGoals)} />
             <Stat
@@ -142,7 +157,7 @@ export default async function HomePage() {
               {!turkLast && !turkNext && (
                 <Link
                   href="/turkiye"
-                  className="text-sm font-medium text-emerald-400 hover:text-emerald-300"
+                  className="text-sm font-medium text-amber-400 hover:text-amber-300"
                 >
                   Türkiye sayfasına git →
                 </Link>
@@ -157,9 +172,11 @@ export default async function HomePage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2">
-      <div className="text-lg font-bold text-white">{value}</div>
-      <div className="text-xs text-slate-400">{label}</div>
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5">
+      <div className="font-mono text-xl font-bold tabular-nums text-amber-300">
+        {value}
+      </div>
+      <div className="mt-0.5 text-xs text-slate-400">{label}</div>
     </div>
   );
 }

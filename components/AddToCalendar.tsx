@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarDays } from "lucide-react";
 import { buildICS } from "@/lib/ics";
 import { trCountry } from "@/lib/i18n";
 import type { Match } from "@/lib/domain/types";
@@ -40,9 +41,9 @@ export function AddToCalendar({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-emerald-500/40 hover:text-white"
+      className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-amber-500/40 hover:text-white"
     >
-      📅 {label}
+      <CalendarDays className="h-4 w-4" aria-hidden /> {label}
     </button>
   );
 }

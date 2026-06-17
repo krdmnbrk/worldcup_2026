@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 
 // Canlı veri tazeliği göstergesi: son başarılı güncellemeden bu yana geçen süreyi
 // ("az önce", "3 dk önce") gösterir; son çekim başarısızsa uyarı verir. Kullanıcı
@@ -32,8 +33,8 @@ export function DataFreshness({
   if (updatedAt == null) {
     if (error)
       return (
-        <span className={`text-amber-300 ${className}`}>
-          ⚠ Veri alınamıyor
+        <span className={`inline-flex items-center gap-1 text-amber-300 ${className}`}>
+          <AlertTriangle className="h-3.5 w-3.5" aria-hidden /> Veri alınamıyor
         </span>
       );
     return null;
@@ -42,8 +43,8 @@ export function DataFreshness({
   const ageSec = Math.max(0, Math.floor((now - updatedAt) / 1000));
   if (error) {
     return (
-      <span className={`text-amber-300 ${className}`}>
-        ⚠ Güncellenemiyor · son veri {rel(ageSec)}
+      <span className={`inline-flex items-center gap-1 text-amber-300 ${className}`}>
+        <AlertTriangle className="h-3.5 w-3.5" aria-hidden /> Güncellenemiyor · son veri {rel(ageSec)}
       </span>
     );
   }

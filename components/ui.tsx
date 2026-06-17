@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 
 export function Container({
   children,
@@ -24,7 +25,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 ${className}`}
+      className={`rounded-2xl border border-white/[0.08] bg-white/[0.025] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_8px_24px_-12px_rgba(0,0,0,0.6)] backdrop-blur-sm ${className}`}
     >
       {children}
     </div>
@@ -44,20 +45,22 @@ export function SectionTitle({
 }) {
   return (
     <div className="mb-4 flex items-end justify-between gap-4">
-      <div>
-        <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">
+      <div className="min-w-0">
+        <h2 className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-white sm:text-xl">
+          <span className="h-5 w-1 shrink-0 rounded-full bg-gradient-to-b from-amber-400 to-amber-600" />
           {title}
         </h2>
         {subtitle && (
-          <p className="mt-0.5 text-sm text-slate-400">{subtitle}</p>
+          <p className="mt-1 pl-3.5 text-sm text-slate-400">{subtitle}</p>
         )}
       </div>
       {href && (
         <Link
           href={href}
-          className="-m-2 inline-flex shrink-0 items-center p-2 text-sm font-medium text-emerald-400 hover:text-emerald-300"
+          className="-m-2 inline-flex shrink-0 items-center gap-1 p-2 text-sm font-semibold text-amber-400 transition-colors hover:text-amber-300"
         >
-          {hrefLabel} →
+          {hrefLabel}
+          <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       )}
     </div>
@@ -69,14 +72,15 @@ export function Pill({
   tone = "slate",
 }: {
   children: ReactNode;
-  tone?: "slate" | "emerald" | "amber" | "red" | "blue";
+  tone?: "slate" | "emerald" | "amber" | "red" | "blue" | "indigo";
 }) {
   const tones: Record<string, string> = {
     slate: "bg-slate-700/40 text-slate-300 ring-slate-500/30",
     emerald: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
     amber: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
     red: "bg-red-500/15 text-red-300 ring-red-500/30",
-    blue: "bg-sky-500/15 text-sky-300 ring-sky-500/30",
+    blue: "bg-indigo-500/15 text-indigo-300 ring-indigo-500/30",
+    indigo: "bg-indigo-500/15 text-indigo-300 ring-indigo-500/30",
   };
   return (
     <span
@@ -120,8 +124,9 @@ export function StaleBanner({ stale }: { stale: boolean }) {
   return (
     <div className="border-b border-amber-500/20 bg-amber-500/10">
       <Container className="py-2">
-        <p className="text-center text-xs text-amber-300">
-          ⚠ Canlı veriye şu an ulaşılamıyor — son bilinen veriler gösteriliyor.
+        <p className="flex items-center justify-center gap-1.5 text-center text-xs text-amber-300">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          Canlı veriye şu an ulaşılamıyor — son bilinen veriler gösteriliyor.
         </p>
       </Container>
     </div>

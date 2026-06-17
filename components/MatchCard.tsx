@@ -5,6 +5,7 @@ import { LiveClock } from "@/components/LiveClock";
 import { LiveBadge, Pill } from "@/components/ui";
 import { trCountry } from "@/lib/i18n";
 import { formatTime, formatDayShort } from "@/lib/datetime";
+import { Tv } from "lucide-react";
 
 function Side({
   name,
@@ -54,7 +55,11 @@ export function MatchCard({
   return (
     <Link
       href={`/maclar/${match.id}`}
-      className="group block rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:border-emerald-500/40 hover:bg-white/[0.06]"
+      className={`group block rounded-xl border p-3 transition-colors ${
+        status === "in"
+          ? "live-glow border-red-500/40 bg-red-500/[0.04] hover:bg-red-500/[0.07]"
+          : "border-white/10 bg-white/[0.03] hover:border-amber-500/40 hover:bg-white/[0.06]"
+      }`}
     >
       <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-slate-400">
         <span className="truncate">
@@ -94,7 +99,7 @@ export function MatchCard({
               </span>
             </div>
           ) : (
-            <div className="text-base font-bold text-emerald-300">
+            <div className="font-mono text-base font-bold tabular-nums text-amber-300">
               {formatTime(match.date)}
             </div>
           )}
@@ -129,8 +134,9 @@ export function MatchCard({
         </div>
       )}
       {match.broadcasts && match.broadcasts.length > 0 && (
-        <div className="mt-1 hidden truncate text-center text-[11px] text-slate-500 sm:block">
-          📺 {match.broadcasts.slice(0, 3).join(", ")}
+        <div className="mt-1 hidden items-center justify-center gap-1 truncate text-center text-[11px] text-slate-500 sm:flex">
+          <Tv className="h-3 w-3 shrink-0" aria-hidden />
+          {match.broadcasts.slice(0, 3).join(", ")}
         </div>
       )}
     </Link>

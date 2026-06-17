@@ -53,7 +53,7 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
           className="pointer-events-none fixed inset-x-0 top-0 z-[60] flex justify-center md:hidden"
           style={{ transform: `translateY(${refreshing ? 14 : pull / 2}px)` }}
         >
-          <div className="mt-2 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-black shadow-lg">
+          <div className="mt-2 rounded-full bg-amber-500/90 px-3 py-1 text-xs font-semibold text-black shadow-lg">
             {refreshing
               ? "Yenileniyor…"
               : pull > 70

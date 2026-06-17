@@ -176,7 +176,7 @@ export function WallpaperStudio({ teams }: { teams: Team[] }) {
               id="wp-team"
               value={effectiveId}
               onChange={(e) => setPicked(e.target.value)}
-              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-slate-200 outline-none focus:border-emerald-500/40"
+              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-slate-200 outline-none focus:border-amber-500/40"
             >
               {sorted.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -198,7 +198,7 @@ export function WallpaperStudio({ teams }: { teams: Team[] }) {
                 aria-pressed={style === s.key}
                 className={`min-h-[2.75rem] rounded-xl border px-4 text-sm font-medium transition-colors ${
                   style === s.key
-                    ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-300"
+                    ? "border-amber-400/50 bg-amber-500/15 text-amber-300"
                     : "border-white/10 bg-white/[0.03] text-slate-300 hover:text-white"
                 }`}
               >
@@ -220,7 +220,7 @@ export function WallpaperStudio({ teams }: { teams: Team[] }) {
                 id="wp-player"
                 value={effPlayer?.id ?? ""}
                 onChange={(e) => setPlayerId(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-slate-200 outline-none focus:border-emerald-500/40"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-slate-200 outline-none focus:border-amber-500/40"
               >
                 {players.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -248,7 +248,7 @@ export function WallpaperStudio({ teams }: { teams: Team[] }) {
                 aria-pressed={sizeKey === s.key}
                 className={`min-h-[2.75rem] rounded-xl border px-4 text-sm font-medium transition-colors ${
                   sizeKey === s.key
-                    ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-300"
+                    ? "border-amber-400/50 bg-amber-500/15 text-amber-300"
                     : "border-white/10 bg-white/[0.03] text-slate-300 hover:text-white"
                 }`}
               >
@@ -265,7 +265,7 @@ export function WallpaperStudio({ teams }: { teams: Team[] }) {
           <button
             type="button"
             onClick={downloadPng}
-            className="inline-flex min-h-[2.75rem] items-center gap-2 rounded-xl bg-emerald-500/20 px-5 text-sm font-semibold text-emerald-200 ring-1 ring-emerald-500/40 transition-colors hover:bg-emerald-500/30"
+            className="inline-flex min-h-[2.75rem] items-center gap-2 rounded-xl bg-amber-500/20 px-5 text-sm font-semibold text-amber-200 ring-1 ring-amber-500/40 transition-colors hover:bg-amber-500/30"
           >
             ⬇ PNG indir
           </button>

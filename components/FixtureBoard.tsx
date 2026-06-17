@@ -67,7 +67,7 @@ export function FixtureBoard({ matches }: { matches: Match[] }) {
               onClick={() => setStatus(t.key)}
               className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 status === t.key
-                  ? "bg-emerald-500/20 text-emerald-300"
+                  ? "bg-amber-500/20 text-amber-300"
                   : "text-slate-400 hover:text-white"
               }`}
             >
@@ -79,7 +79,7 @@ export function FixtureBoard({ matches }: { matches: Match[] }) {
         <select
           value={group}
           onChange={(e) => setGroup(e.target.value)}
-          className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 outline-none focus:border-emerald-500/40"
+          className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 outline-none focus:border-amber-500/40"
         >
           <option value="all">Tüm gruplar</option>
           {groups.map((g) => (
@@ -93,7 +93,7 @@ export function FixtureBoard({ matches }: { matches: Match[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Takım ara..."
-          className="min-w-[160px] flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 outline-none placeholder:text-slate-500 focus:border-emerald-500/40"
+          className="min-w-[160px] flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 outline-none placeholder:text-slate-500 focus:border-amber-500/40"
         />
       </div>
 

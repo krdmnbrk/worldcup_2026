@@ -36,13 +36,13 @@ export default async function TeamsPage() {
           <div className="space-y-8">
             {groups.map(([g, teams]) => (
               <section key={g}>
-                <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-emerald-300">
+                <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-amber-300">
                   {g === "?" ? "Diğer" : `Grup ${g}`}
                 </h2>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                   {teams.map((t) => (
                     <Link key={t.id} href={`/takimlar/${t.id}`}>
-                      <Card className="flex items-center gap-3 p-3 transition-colors hover:border-emerald-500/40 hover:bg-white/[0.06]">
+                      <Card className="flex items-center gap-3 p-3 transition-colors hover:border-amber-500/40 hover:bg-white/[0.06]">
                         <TeamFlag
                           abbr={t.abbr}
                           logo={t.logo}

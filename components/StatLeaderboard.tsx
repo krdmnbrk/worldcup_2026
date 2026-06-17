@@ -52,12 +52,12 @@ export function StatLeaderboard({
               )}
               <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/5">
                 <div
-                  className="h-full bg-emerald-500"
+                  className="h-full bg-amber-500"
                   style={{ width: `${(e.value / max) * 100}%` }}
                 />
               </div>
             </div>
-            <span className="shrink-0 font-mono text-base font-bold text-emerald-300 tabular-nums">
+            <span className="shrink-0 font-mono text-base font-bold text-amber-300 tabular-nums">
               {e.value}
               {unit}
             </span>

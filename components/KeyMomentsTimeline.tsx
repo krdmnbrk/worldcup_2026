@@ -1,15 +1,27 @@
 import Link from "next/link";
+import { CircleDot, Tv, ArrowLeftRight } from "lucide-react";
+import type { ReactNode } from "react";
 import type { MatchEvent, EventType } from "@/lib/domain/types";
 import { EmptyState } from "@/components/ui";
 
-const ICONS: Record<EventType, string> = {
-  goal: "⚽",
-  penalty: "⚽",
-  "own-goal": "⚽",
-  yellow: "🟨",
-  red: "🟥",
-  sub: "🔁",
-  var: "📺",
+const ICONS: Record<EventType, ReactNode> = {
+  goal: <CircleDot className="h-4 w-4 text-emerald-400" aria-hidden />,
+  penalty: <CircleDot className="h-4 w-4 text-emerald-400" aria-hidden />,
+  "own-goal": <CircleDot className="h-4 w-4 text-red-400" aria-hidden />,
+  yellow: (
+    <span
+      className="inline-block h-4 w-3 rounded-[2px] bg-yellow-400"
+      aria-label="Sarı kart"
+    />
+  ),
+  red: (
+    <span
+      className="inline-block h-4 w-3 rounded-[2px] bg-red-500"
+      aria-label="Kırmızı kart"
+    />
+  ),
+  sub: <ArrowLeftRight className="h-4 w-4 text-indigo-300" aria-hidden />,
+  var: <Tv className="h-4 w-4 text-slate-300" aria-hidden />,
   other: "•",
 };
 
@@ -53,7 +65,7 @@ export function KeyMomentsTimeline({
               {e.playerId ? (
                 <Link
                   href={`/oyuncular/${e.playerId}`}
-                  className="block truncate text-sm font-semibold text-white hover:text-emerald-300"
+                  className="block truncate text-sm font-semibold text-white hover:text-amber-300"
                 >
                   {e.player || "—"}
                 </Link>
@@ -78,7 +90,7 @@ export function KeyMomentsTimeline({
             }`}
           >
             {isHome && body}
-            <span className="absolute left-1/2 -translate-x-1/2 rounded-full bg-emerald-500/90 px-1.5 py-0.5 text-[10px] font-bold text-black">
+            <span className="absolute left-1/2 -translate-x-1/2 rounded-full bg-amber-500/90 px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-black">
               {e.minute || "·"}
             </span>
             {!isHome && body}

@@ -6,7 +6,7 @@ export function PlayerCard({ player }: { player: Player }) {
   return (
     <Link
       href={`/oyuncular/${player.id}`}
-      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-2.5 transition-colors hover:border-emerald-500/40 hover:bg-white/[0.06]"
+      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-2.5 transition-colors hover:border-amber-500/40 hover:bg-white/[0.06]"
     >
       <PlayerImage
         id={player.id}

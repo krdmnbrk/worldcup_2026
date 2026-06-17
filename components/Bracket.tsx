@@ -90,7 +90,7 @@ export function Bracket({ data }: { data: BracketData }) {
           if (!slots.length) return null;
           return (
             <div key={round} className="w-44 shrink-0">
-              <h3 className="mb-2 text-center text-xs font-bold uppercase tracking-wide text-emerald-300">
+              <h3 className="mb-2 text-center text-xs font-bold uppercase tracking-wide text-amber-300">
                 {ROUND_LABEL[round]}
               </h3>
               <div className="flex h-full flex-col justify-around gap-2">

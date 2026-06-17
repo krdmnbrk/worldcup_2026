@@ -86,7 +86,7 @@ export default async function StatsPage() {
             </Card>
             {assistChart.length > 0 && (
               <Card className="mt-3 p-3">
-                <BarChartCard data={assistChart} color="#38bdf8" />
+                <BarChartCard data={assistChart} color="#6366f1" />
               </Card>
             )}
           </section>
@@ -102,7 +102,7 @@ export default async function StatsPage() {
             </Card>
             {teamChart.length > 0 && (
               <Card className="mt-3 p-3">
-                <BarChartCard data={teamChart} color="#22c55e" />
+                <BarChartCard data={teamChart} color="#f59e0b" />
               </Card>
             )}
           </section>

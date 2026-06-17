@@ -5,21 +5,44 @@ import type {
   PlayerMatchStat,
 } from "@/lib/domain/types";
 import { PlayerImage } from "@/components/PlayerImage";
+import { CircleDot } from "lucide-react";
 
 type Cat = "GK" | "DEF" | "MID" | "FWD";
 
 // Oyuncunun maçtaki öne çıkan katkıları (gol/asist/kart) küçük rozetler
 function StatBadges({ s }: { s?: PlayerMatchStat }) {
   if (!s) return null;
-  const parts: string[] = [];
-  if (s.goals > 0) parts.push(s.goals > 1 ? `⚽×${s.goals}` : "⚽");
-  if (s.assists > 0) parts.push(s.assists > 1 ? `🅰×${s.assists}` : "🅰");
-  if (s.red) parts.push("🟥");
-  else if (s.yellow) parts.push("🟨");
-  if (!parts.length) return null;
+  const hasAny = s.goals > 0 || s.assists > 0 || s.red || s.yellow;
+  if (!hasAny) return null;
   return (
-    <span className="whitespace-nowrap text-[10px] leading-none">
-      {parts.join(" ")}
+    <span className="flex items-center gap-1 whitespace-nowrap text-[10px] font-semibold leading-none text-white">
+      {s.goals > 0 && (
+        <span className="inline-flex items-center gap-0.5" title="Gol">
+          <CircleDot className="h-3 w-3 text-emerald-400" aria-hidden />
+          {s.goals > 1 ? `×${s.goals}` : ""}
+        </span>
+      )}
+      {s.assists > 0 && (
+        <span
+          className="inline-flex items-center gap-0.5 text-indigo-300"
+          title="Asist"
+        >
+          A{s.assists > 1 ? `×${s.assists}` : ""}
+        </span>
+      )}
+      {s.red ? (
+        <span
+          className="inline-block h-3 w-2 rounded-[1px] bg-red-500"
+          title="Kırmızı kart"
+          aria-label="Kırmızı kart"
+        />
+      ) : s.yellow ? (
+        <span
+          className="inline-block h-3 w-2 rounded-[1px] bg-yellow-400"
+          title="Sarı kart"
+          aria-label="Sarı kart"
+        />
+      ) : null}
     </span>
   );
 }
@@ -39,7 +62,7 @@ function categorize(pos?: string): Cat {
 
 const CAT_RING: Record<Cat, string> = {
   GK: "ring-amber-400",
-  DEF: "ring-sky-400",
+  DEF: "ring-indigo-400",
   MID: "ring-emerald-400",
   FWD: "ring-red-400",
 };
@@ -118,7 +141,7 @@ export function LineupPitch({ lineup }: { lineup: TeamLineup }) {
             Kaleci
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-full ring-2 ring-sky-400" />{" "}
+            <span className="h-2.5 w-2.5 rounded-full ring-2 ring-indigo-400" />{" "}
             Defans
           </span>
           <span className="flex items-center gap-1">

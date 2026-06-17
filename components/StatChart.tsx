@@ -16,7 +16,7 @@ export interface ChartDatum {
   value: number;
 }
 
-const COLORS = ["#10b981", "#22c55e", "#34d399", "#4ade80", "#6ee7b7"];
+const COLORS = ["#f59e0b", "#6366f1", "#fbbf24", "#818cf8", "#fcd34d"];
 
 // Recharts ResponsiveContainer SSR'da boyut hesaplayamaz; hidrasyon uyuşmazlığını
 // önlemek için yalnızca istemcide kurulur. useSyncExternalStore: sunucuda ve ilk
@@ -33,7 +33,7 @@ function useHydrated(): boolean {
 export function BarChartCard({
   data,
   height = 280,
-  color = "#10b981",
+  color = "#f59e0b",
   multicolor = false,
 }: {
   data: ChartDatum[];
