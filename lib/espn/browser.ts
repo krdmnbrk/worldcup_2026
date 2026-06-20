@@ -106,9 +106,15 @@ export async function browserMatch(
   dateIso: string,
 ): Promise<Match | null> {
   try {
-    const day = ymd(dateIso);
+    // ESPN skorbordu maçı kendi (ABD) saat dilimine göre güne kovalar; UTC günü
+    // ile bir gün kayabilir (ör. Pasifik gecesi maçı UTC'de ertesi gün). Bu yüzden
+    // tek gün değil ±1 günlük pencere sorgulanır — yoksa canlı maç bulunamayıp
+    // sayfa "başlamadı" durumunda takılır (alt bar canlı gösterirken).
+    const t = +new Date(dateIso);
+    const from = ymd(new Date(t - 86400000).toISOString());
+    const to = ymd(new Date(t + 86400000).toISOString());
     const ms = normalizeScoreboard(
-      await getJson(endpoints.scoreboard(`${day}-${day}`)),
+      await getJson(endpoints.scoreboard(`${from}-${to}`)),
     );
     return ms.find((m) => m.id === id) ?? null;
   } catch {

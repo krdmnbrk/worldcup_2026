@@ -99,7 +99,7 @@ export function MatchCard({
               </span>
             </div>
           ) : (
-            <div className="font-mono text-base font-bold tabular-nums text-amber-300">
+            <div className="font-mono text-base font-bold tabular-nums text-white">
               {formatTime(match.date)}
             </div>
           )}

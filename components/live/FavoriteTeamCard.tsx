@@ -1,18 +1,26 @@
 "use client";
 
+import { useCallback } from "react";
 import { useFavoriteTeam } from "@/components/useFavoriteTeam";
 import { MatchCard } from "@/components/MatchCard";
 import { SectionTitle } from "@/components/ui";
+import { useEspnPoll, liveRefreshMs } from "@/components/useEspnPoll";
+import { browserMergeLiveInto } from "@/lib/espn/browser";
 import { trCountry } from "@/lib/i18n";
 import type { Match } from "@/lib/domain/types";
 
+const interval = (ms: Match[]) => liveRefreshMs(ms.some((m) => m.status === "in"));
+
 // Ana sayfada, kullanıcının takip ettiği takımın canlı/son/sonraki maçı.
-// Favori yoksa veya maçı yoksa görünmez.
+// Favori yoksa veya maçı yoksa görünmez. SSR anlık görüntüsü canlıyken bayat
+// kalmasın diye tarayıcıda taze skorlar bindirilir.
 export function FavoriteTeamCard({ matches }: { matches: Match[] }) {
   const { fav } = useFavoriteTeam();
+  const fetcher = useCallback(() => browserMergeLiveInto(matches), [matches]);
+  const { data } = useEspnPoll(fetcher, interval, matches, !!fav, true);
   if (!fav) return null;
 
-  const teamMatches = matches
+  const teamMatches = data
     .filter((m) => m.home.id === fav || m.away.id === fav)
     .sort((a, b) => +new Date(a.date) - +new Date(b.date));
   if (!teamMatches.length) return null;
