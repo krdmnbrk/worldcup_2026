@@ -68,6 +68,28 @@ export async function browserLiveToday(): Promise<Match[] | null> {
   }
 }
 
+// Taze maçları (updates) baseline üzerine id'ye göre bindirir, tarihe göre sıralar.
+// Saf fonksiyon (test edilebilir) — ağ yok.
+export function mergeMatchesById(baseline: Match[], updates: Match[]): Match[] {
+  const map = new Map(baseline.map((m) => [m.id, m]));
+  for (const m of updates) map.set(m.id, m);
+  return Array.from(map.values()).sort(
+    (a, b) => +new Date(a.date) - +new Date(b.date),
+  );
+}
+
+// Canlı tazeleme için hafif yol: 6 dilimin tamamını yeniden çekmek yerine yalnızca
+// bugünün penceresini (tek istek) çekip SSR'dan gelen tam fikstüre bindirir.
+// Geçmiş/gelecek maçlar zaten değişmez; yalnızca bugünküler güncellenir.
+// today null (hata) → null döner, son iyi veri korunur.
+export async function browserMergeLiveInto(
+  baseline: Match[],
+): Promise<Match[] | null> {
+  const today = await browserLiveToday();
+  if (!today) return null;
+  return mergeMatchesById(baseline, today);
+}
+
 // Hata/boş → null (son iyi veriyi koru); geçici ESPN hatası grup tablolarını boşaltmaz.
 export async function browserStandings(): Promise<GroupStanding[] | null> {
   try {

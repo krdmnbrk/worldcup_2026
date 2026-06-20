@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEspnPoll } from "@/components/useEspnPoll";
+import { useEspnPoll, liveRefreshMs } from "@/components/useEspnPoll";
 import { browserLiveToday } from "@/lib/espn/browser";
 import { TeamFlag } from "@/components/TeamFlag";
 import { LiveClock } from "@/components/LiveClock";
@@ -13,7 +13,7 @@ import type { Match } from "@/lib/domain/types";
 export function LiveBar() {
   const { data, updatedAt } = useEspnPoll<Match[]>(
     browserLiveToday,
-    30000,
+    (ms) => liveRefreshMs(ms.some((m) => m.status === "in")),
     [],
     true,
     true,

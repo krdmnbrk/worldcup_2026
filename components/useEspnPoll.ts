@@ -2,13 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 
+// Canlı maç oynanırken sık, dururken seyrek tazeleme aralığı (ms).
+// Tek yerden ayarlanır ki tüm canlı bileşenler tutarlı davransın.
+export const LIVE_REFRESH_MS = 15000;
+export const IDLE_REFRESH_MS = 60000;
+export const liveRefreshMs = (hasLive: boolean) =>
+  hasLive ? LIVE_REFRESH_MS : IDLE_REFRESH_MS;
+
 // Tarayıcıda belirli aralıkla ESPN'den veri çeker. Sekme gizliyken bekler,
 // sekme tekrar görünür olunca hemen tazeler. SSR'dan gelen `initial` ile başlar.
 export function useEspnPoll<T>(
   // null döndürmek "bu sefer güncelleme yok" demektir → son iyi veri korunur,
   // updatedAt ilerlemez (tazelik göstergesi dürüst kalır).
   fetcher: () => Promise<T | null>,
-  intervalMs: number,
+  // Sabit aralık (ms) ya da en güncel veriye bakıp aralık döndüren fonksiyon
+  // (canlı maç varken hızlanmak için). Her zamanlamada yeniden hesaplanır.
+  intervalMs: number | ((data: T) => number),
   initial: T,
   enabled = true,
   leading = false, // true: mount'ta hemen taze çek (canlı dakika anchor'ı için)
@@ -16,11 +25,16 @@ export function useEspnPoll<T>(
   const [data, setData] = useState<T>(initial);
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const [error, setError] = useState(false); // son denemenin başarısızlığı (UI uyarısı için)
-  // Ref'i render sırasında değil, her render sonrası effect'te güncelleriz
-  // (react-hooks/refs). Timer geri-çağrımı her zaman en güncel fetcher'ı görür.
+  // fetcher, interval ve son veri ref'te tutulur; böylece timer geri-çağrımı her
+  // zaman en günceli görür ve bu değerler değişince effect yeniden kurulmaz
+  // (gereksiz timer sıfırlaması/çift istek olmaz).
   const fetcherRef = useRef(fetcher);
+  const intervalRef = useRef(intervalMs);
+  const dataRef = useRef(data);
   useEffect(() => {
     fetcherRef.current = fetcher;
+    intervalRef.current = intervalMs;
+    dataRef.current = data;
   });
 
   useEffect(() => {
@@ -29,9 +43,13 @@ export function useEspnPoll<T>(
     let timer: ReturnType<typeof setTimeout>;
     let errors = 0; // ağ hatasında üssel geri çekilme (pil/veri tasarrufu)
 
+    const nextInterval = () => {
+      const iv = intervalRef.current;
+      return typeof iv === "function" ? iv(dataRef.current) : iv;
+    };
     const schedule = () => {
       const backoff = Math.min(2 ** errors, 8); // 1×..8× (maks ~8 kat)
-      timer = setTimeout(run, intervalMs * backoff);
+      timer = setTimeout(run, nextInterval() * backoff);
     };
     const run = async () => {
       if (typeof document !== "undefined" && document.hidden) {
@@ -41,6 +59,7 @@ export function useEspnPoll<T>(
       try {
         const next = await fetcherRef.current();
         if (!cancelled && next != null) {
+          dataRef.current = next;
           setData(next);
           setUpdatedAt(Date.now());
           setError(false);
@@ -53,8 +72,8 @@ export function useEspnPoll<T>(
       if (!cancelled) schedule();
     };
 
-    // leading=true ise hemen, değilse intervalMs sonra (SSR initial zaten elimizde)
-    timer = setTimeout(run, leading ? 500 : intervalMs);
+    // leading=true ise hemen, değilse bir aralık sonra (SSR initial zaten elimizde)
+    timer = setTimeout(run, leading ? 500 : nextInterval());
 
     const onVisible = () => {
       if (!document.hidden) {
@@ -69,7 +88,7 @@ export function useEspnPoll<T>(
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [intervalMs, enabled, leading]);
+  }, [enabled, leading]);
 
   return { data, updatedAt, error };
 }

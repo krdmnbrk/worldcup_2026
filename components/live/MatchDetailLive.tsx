@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Tv, MapPin, CalendarDays, UserCog, Users } from "lucide-react";
-import { useEspnPoll } from "@/components/useEspnPoll";
+import { useEspnPoll, liveRefreshMs } from "@/components/useEspnPoll";
 import {
   browserMatch,
   browserSummary,
@@ -66,7 +66,8 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
   const { data: match, updatedAt, error } = useEspnPoll<Match>(
     // null = güncelleme yok → son iyi veri korunur, tazelik göstergesi dürüst kalır
     () => browserMatch(id, initialMatch.date),
-    20000,
+    // canlıyken sık, maç başlamadan/bittikten sonra seyrek
+    (m) => liveRefreshMs(m.status === "in"),
     initialMatch,
     initialMatch.status !== "post",
     true, // canlı dakika anchor'ı için hemen taze çek
@@ -92,30 +93,45 @@ export function MatchDetailLive({ initialMatch }: { initialMatch: Match }) {
     };
   }, [id, played]);
 
+  // Maç özeti (istatistik/anlatı/kadro). Canlıyken her tazeleme turunda yeniden
+  // çekilir — possession/şut gibi istatistikler maç boyunca değişir; eskiden
+  // yalnızca status değişiminde çekildiği için canlı stat'lar donuyordu.
+  // Pre/post'ta updatedAt sabit kaldığından fazladan istek olmaz.
   useEffect(() => {
     if (!played) return;
     let cancelled = false;
-    (async () => {
-      const s = await browserSummary(id);
+    browserSummary(id).then((s) => {
       if (cancelled) return;
       setSummary(s);
       setLoaded(true);
-      if (s) {
-        const fos: Record<string, string> = {};
-        await Promise.all(
-          s.lineups.map(async (lu) => {
-            const f = await browserFormation(id, lu.teamId);
-            if (f) fos[lu.teamId] = f;
-          }),
-        );
-        if (!cancelled) setFormations(fos);
-      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, played, match.status, updatedAt]);
+
+  // Diziliş (formation) maç boyunca değişmez — kadro geldiğinde bir kez çekilir,
+  // her stat tazelemesinde tekrar istek atılmaz.
+  const lineupKey = summary?.lineups.map((l) => l.teamId).join(",") ?? "";
+  useEffect(() => {
+    if (!summary?.lineups.length) return;
+    const lineups = summary.lineups;
+    let cancelled = false;
+    (async () => {
+      const fos: Record<string, string> = {};
+      await Promise.all(
+        lineups.map(async (lu) => {
+          const f = await browserFormation(id, lu.teamId);
+          if (f) fos[lu.teamId] = f;
+        }),
+      );
+      if (!cancelled) setFormations(fos);
     })();
     return () => {
       cancelled = true;
     };
-    // status değişince (başlama/bitiş) yeniden çek
-  }, [id, played, match.status]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, lineupKey]);
 
   const orderedLineups: TeamLineup[] = summary
     ? ([

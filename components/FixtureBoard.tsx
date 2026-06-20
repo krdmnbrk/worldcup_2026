@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Match } from "@/lib/domain/types";
 import { MatchList } from "@/components/MatchList";
 import { trCountry } from "@/lib/i18n";
-import { useEspnPoll } from "@/components/useEspnPoll";
+import { useEspnPoll, liveRefreshMs } from "@/components/useEspnPoll";
 import { DataFreshness } from "@/components/DataFreshness";
-import { browserAllMatches } from "@/lib/espn/browser";
+import { browserMergeLiveInto } from "@/lib/espn/browser";
+
+const interval = (ms: Match[]) => liveRefreshMs(ms.some((m) => m.status === "in"));
 
 type StatusFilter = "all" | "live" | "pre" | "post";
 
@@ -18,9 +20,10 @@ const STATUS_TABS: { key: StatusFilter; label: string }[] = [
 ];
 
 export function FixtureBoard({ matches }: { matches: Match[] }) {
+  const fetcher = useCallback(() => browserMergeLiveInto(matches), [matches]);
   const { data: live, updatedAt, error } = useEspnPoll(
-    browserAllMatches,
-    45000,
+    fetcher,
+    interval,
     matches,
     true,
     true,

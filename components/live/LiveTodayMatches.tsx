@@ -1,18 +1,24 @@
 "use client";
 
+import { useCallback } from "react";
 import { useEspnPoll } from "@/components/useEspnPoll";
 import { DataFreshness } from "@/components/DataFreshness";
-import { browserAllMatches } from "@/lib/espn/browser";
+import { browserMergeLiveInto } from "@/lib/espn/browser";
 import { MatchList } from "@/components/MatchList";
 import { EmptyState } from "@/components/ui";
 import { istanbulDayKey } from "@/lib/datetime";
+import { liveRefreshMs } from "@/components/useEspnPoll";
 import type { Match } from "@/lib/domain/types";
 
-// Ana sayfadaki "Canlı ve Bugün" bölümü — tarayıcıda dakikada bir tazelenir.
+const interval = (ms: Match[]) => liveRefreshMs(ms.some((m) => m.status === "in"));
+
+// Ana sayfadaki "Canlı ve Bugün" bölümü — tarayıcıda tazelenir. Canlı maç oynanırken
+// daha sık, dururken daha seyrek çeker; ayrıca 6 dilim yerine tek istek bindirir.
 export function LiveTodayMatches({ initial }: { initial: Match[] }) {
+  const fetcher = useCallback(() => browserMergeLiveInto(initial), [initial]);
   const { data, updatedAt, error } = useEspnPoll(
-    browserAllMatches,
-    45000,
+    fetcher,
+    interval,
     initial,
     true,
     true,
